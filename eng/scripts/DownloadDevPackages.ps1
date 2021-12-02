@@ -10,7 +10,7 @@ param (
 . (Join-Path $PSScriptRoot ".." common scripts common.ps1)
 
 $allPackages = Get-AllPkgProperties
-$trackTwoPackages = $allPackages.Where{ $_.IsNewSdk }
+$trackTwoPackages = $allPackages.Where({ $_.IsNewSdk })
 
 Push-Location $WorkingDirectory
 $nugetPackagesPath = Join-Path $WorkingDirectory nugetPackages

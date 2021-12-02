@@ -106,7 +106,7 @@ stages:
               path: '$(Build.ArtifactStagingDirectory)/reports'
 
           - task: AzureFileCopy@4
-            displayName: 'Upload dependency report (1)'
+            displayName: 'Upload Dependency Report'
             inputs:
               sourcePath: '$(Build.ArtifactStagingDirectory)/reports/*'
               azureSubscription: 'Azure SDK Artifacts'
@@ -117,7 +117,7 @@ stages:
               AdditionalArgumentsForBlobCopy: '--exclude-pattern=*data.js*'
 
           - task: AzureFileCopy@4
-            displayName: 'Upload dependency report (2)'
+            displayName: 'Upload Dependency Graph'
             inputs:
               sourcePath: '$(Build.ArtifactStagingDirectory)/reports/*'
               azureSubscription: 'Azure SDK Artifacts'
