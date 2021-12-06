@@ -141,11 +141,14 @@ jobs:
       - template: /eng/common/pipelines/templates/steps/verify-samples.yml
         parameters:
           ServiceDirectory: ${{ parameters.ServiceDirectory }}
-      - script: |
-          pip install setuptools wheel
-          pip install doc-warden==$(DocWardenVersion)
-          ward scan -d $(Build.SourcesDirectory) -c $(Build.SourcesDirectory)/eng/.docsettings.yml
+      - task: PowerShell@2
         displayName: "Verify Readmes"
+        inputs:
+          filePath: "eng/common/scripts/Verify-Readme.ps1"
+          arguments: >
+           -ScanPath $(Build.SourcesDirectory)/sdk/${{ parameters.ServiceDirectory }}
+           -SettingsPath $(Build.SourcesDirectory)/eng/.docsettings.yml
+          pwsh: true
       - template: /eng/common/pipelines/templates/steps/verify-path-length.yml
         parameters:
           SourceDirectory: $(Build.SourcesDirectory)
