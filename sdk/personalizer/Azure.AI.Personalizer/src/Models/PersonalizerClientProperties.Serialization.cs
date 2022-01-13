@@ -40,7 +40,7 @@ namespace Azure.AI.Personalizer.Models
                 }
                 if (property.NameEquals("initialCommandLine"))
                 {
-                    learningMode = new PersonalizerLearningMode(property.Value.GetString());
+                    initialCommandLine = property.Value.GetString();
                     continue;
                 }
             }
