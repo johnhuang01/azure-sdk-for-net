@@ -4,7 +4,6 @@
 using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.InteropServices;
 
 namespace Azure.AI.Personalizer
 {
@@ -29,32 +28,14 @@ namespace Azure.AI.Personalizer
                     string ids = null;
                     List<string> jsonFeatures = action.Features.Select(f => JsonConvert.SerializeObject(f)).ToList();
 
-                    //if (action.Ids != null)
-                    //{
-                    //    ids = string.Join(",", action.Ids);
-                    //}
-
                     var doc = new DecisionContextDocument
                     {
                         ID = ids,
                         JSON = jsonFeatures,
                     };
 
-                    //if (action.ActionSet != null && action.ActionSet?.Id != null)
-                    //    doc.Source = new DecisionContextDocumentSource
-                    //    {
-                    //        Set = action.ActionSet.Id.Id,
-                    //        Parameter = action.ActionSet.Parameter
-                    //    };
-
                     return doc;
                 }).ToArray();
-
-            //this.Slots = decisionRequest.Slots?
-            //    .Select(slot => new DecisionContextDocument {
-            //        SlotId = slot.Id,
-            //        SlotJson = slot.JsonFeatures
-            //    }).ToArray();
         }
 
         /// <summary> Properties from url </summary>

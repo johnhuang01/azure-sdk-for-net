@@ -33,7 +33,7 @@
   <ItemGroup>
     <PackageReference Include="Azure.Core" />
     <PackageReference Include="Microsoft.RL" VersionOverride="1.0.18120003-INTERNAL" />
-    <PackageReference Include="Newtonsoft.Json" VersionOverride="13.0.1" />
+    <PackageReference Include="Newtonsoft.Json" VersionOverride="10.0.3" />
   </ItemGroup>
 
 </Project>
