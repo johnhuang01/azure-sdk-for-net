@@ -66,9 +66,12 @@ namespace Azure.AI.Personalizer
             this(endpoint, credential, options)
         {
             _isLocalInference = isLocalInference;
-            LiveModel liveModel = new LiveModel(configuration);
-            liveModel.Init();
-            _rankProcessor = new RankProcessor(liveModel);
+            if (isLocalInference)
+            {
+                LiveModel liveModel = new LiveModel(configuration);
+                liveModel.Init();
+                _rankProcessor = new RankProcessor(liveModel);
+            }
         }
 
         /// <summary> Initializes a new instance of PersonalizerClient. </summary>
@@ -111,9 +114,12 @@ namespace Azure.AI.Personalizer
             this(endpoint, credential, options)
         {
             _isLocalInference = isLocalInference;
-            LiveModel liveModel = new LiveModel(configuration);
-            liveModel.Init();
-            _rankProcessor = new RankProcessor(liveModel);
+            if (isLocalInference)
+            {
+                LiveModel liveModel = new LiveModel(configuration);
+                liveModel.Init();
+                _rankProcessor = new RankProcessor(liveModel);
+            }
         }
 
         /// <summary> Initializes a new instance of PersonalizerClient. </summary>
