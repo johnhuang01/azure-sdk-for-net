@@ -25,12 +25,11 @@ namespace Azure.AI.Personalizer
             this.Documents = rankRequest.Actions
                 .Select(action =>
                 {
-                    string ids = null;
                     List<string> jsonFeatures = action.Features.Select(f => JsonConvert.SerializeObject(f)).ToList();
 
                     var doc = new DecisionContextDocument
                     {
-                        ID = ids,
+                        ID = action.Id,
                         JSON = jsonFeatures,
                     };
 
