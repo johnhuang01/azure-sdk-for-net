@@ -10,7 +10,7 @@ namespace Azure.AI.Personalizer
     public class DecisionContextDocument
     {
         /// <summary>
-        /// Supply _tag for online evaluation (VW/EvalOperation.cs)
+        /// Supply _tag for online evaluation
         /// </summary>
         [JsonProperty("_tag", NullValueHandling = NullValueHandling.Ignore)]
         public string ID

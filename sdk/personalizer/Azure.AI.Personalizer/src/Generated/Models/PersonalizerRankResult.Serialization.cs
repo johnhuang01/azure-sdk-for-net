@@ -46,7 +46,6 @@ namespace Azure.AI.Personalizer
                     continue;
                 }
             }
-            
             return new PersonalizerRankResult(Optional.ToList(ranking), eventId.Value, rewardActionId.Value);
         }
     }
