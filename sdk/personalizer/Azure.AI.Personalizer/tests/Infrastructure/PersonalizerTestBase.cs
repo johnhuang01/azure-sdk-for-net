@@ -11,14 +11,14 @@ namespace Azure.AI.Personalizer.Tests
     {
         public static bool IsTestTenant = false;
 
-        public PersonalizerTestBase(bool isAsync): base(isAsync)
+        public PersonalizerTestBase(bool isAsync) : base(isAsync)
         {
             // TODO: Compare bodies again when https://github.com/Azure/azure-sdk-for-net/issues/22219 is resolved.
             Matcher = new RecordMatcher(compareBodies: false);
             Sanitizer = new PersonalizerRecordedTestSanitizer();
         }
 
-        protected async Task<PersonalizerClient> GetPersonalizerClientAsync(bool isSingleSlot = false)
+        protected async Task<PersonalizerClient> GetPersonalizerClientAsync(bool isSingleSlot = false, bool isLocalInference = false)
         {
             string endpoint = isSingleSlot ? TestEnvironment.SingleSlotEndpoint : TestEnvironment.MultiSlotEndpoint;
             string apiKey = isSingleSlot ? TestEnvironment.SingleSlotApiKey : TestEnvironment.MultiSlotApiKey;
