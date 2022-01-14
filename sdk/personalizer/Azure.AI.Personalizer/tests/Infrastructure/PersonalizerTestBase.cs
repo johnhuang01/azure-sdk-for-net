@@ -11,7 +11,7 @@ namespace Azure.AI.Personalizer.Tests
     {
         public static bool IsTestTenant = false;
 
-        public PersonalizerTestBase(bool isAsync) : base(isAsync)
+        public PersonalizerTestBase(bool isAsync): base(isAsync)
         {
             // TODO: Compare bodies again when https://github.com/Azure/azure-sdk-for-net/issues/22219 is resolved.
             Matcher = new RecordMatcher(compareBodies: false);
