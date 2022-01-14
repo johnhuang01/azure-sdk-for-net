@@ -8,7 +8,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Azure.Core;
 using Azure.Core.Pipeline;
-using Rl.Net;
 
 namespace Azure.AI.Personalizer
 {
@@ -19,8 +18,6 @@ namespace Azure.AI.Personalizer
         private readonly ClientDiagnostics _clientDiagnostics;
         private readonly HttpPipeline _pipeline;
         private readonly bool _isLocalInference;
-        private readonly RankProcessor _rankProcessor;
-
         internal RankRestClient RankRestClient { get; set; }
         internal EventsRestClient EventsRestClient { get; set; }
         internal MultiSlotRestClient MultiSlotRestClient { get; set; }
@@ -70,12 +67,9 @@ namespace Azure.AI.Personalizer
             this(endpoint, credential, options)
         {
             _isLocalInference = isLocalInference;
-            if (isLocalInference)
-            {
-                LiveModel liveModel = new LiveModel(GetClientConfigurationForLiveModel());
-                liveModel.Init();
-                _rankProcessor = new RankProcessor(liveModel);
-            }
+            LiveModel liveModel = new LiveModel(configuration);
+            liveModel.Init();
+            _rankProcessor = new RankProcessor(liveModel);
         }
 
         /// <summary> Initializes a new instance of PersonalizerClient. </summary>
@@ -156,14 +150,7 @@ namespace Azure.AI.Personalizer
             scope.Start();
             try
             {
-                if (_isLocalInference)
-                {
-                    return _rankProcessor.Rank(options, cancellationToken);
-                }
-                else
-                {
-                    return await RankRestClient.RankAsync(options, cancellationToken).ConfigureAwait(false);
-                }
+                return await RankRestClient.RankAsync(options, cancellationToken).ConfigureAwait(false);
             }
             catch (Exception e)
             {

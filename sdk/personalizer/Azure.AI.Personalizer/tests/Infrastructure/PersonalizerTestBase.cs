@@ -4,7 +4,6 @@
 using System;
 using System.Threading.Tasks;
 using Azure.Core.TestFramework;
-using Rl.Net;
 
 namespace Azure.AI.Personalizer.Tests
 {
@@ -19,7 +18,7 @@ namespace Azure.AI.Personalizer.Tests
             Sanitizer = new PersonalizerRecordedTestSanitizer();
         }
 
-        protected async Task<PersonalizerClient> GetPersonalizerClientAsync(bool isSingleSlot = false, bool isLocalInference = false)
+        protected async Task<PersonalizerClient> GetPersonalizerClientAsync(bool isSingleSlot = false)
         {
             string endpoint = isSingleSlot ? TestEnvironment.SingleSlotEndpoint : TestEnvironment.MultiSlotEndpoint;
             string apiKey = isSingleSlot ? TestEnvironment.SingleSlotApiKey : TestEnvironment.MultiSlotApiKey;
