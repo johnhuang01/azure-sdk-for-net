@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Threading;
 using System.Threading.Tasks;
 using Azure.Core;
@@ -26,6 +27,7 @@ namespace Azure.AI.Personalizer
         internal MultiSlotEventsRestClient MultiSlotEventsRestClient { get; set; }
 
         internal Models.ClientConfigurationRestClient ClientConfigurationRestClient { get; set; }
+        internal Lazy<Models.PersonalizerClientProperties> result { get; set; }
 
         /// <summary> Initializes a new instance of Personalizer Client for mocking. </summary>
         protected PersonalizerClient()
@@ -63,15 +65,17 @@ namespace Azure.AI.Personalizer
         /// <param name="endpoint"> Supported Cognitive Services endpoint. </param>
         /// <param name="credential"> A credential used to authenticate to an Azure Service. </param>
         /// <param name="isLocalInference"> A flag to determine whether to use local inference. </param>
-        /// <param name="configuration"> A configuration to use local reference. </param>
         /// <param name="options"> The options for configuring the client. </param>
-        public PersonalizerClient(Uri endpoint, TokenCredential credential, bool isLocalInference, Configuration configuration, PersonalizerClientOptions options = null) :
+        public PersonalizerClient(Uri endpoint, TokenCredential credential, bool isLocalInference, PersonalizerClientOptions options = null) :
             this(endpoint, credential, options)
         {
             _isLocalInference = isLocalInference;
-            LiveModel liveModel = new LiveModel(configuration);
-            liveModel.Init();
-            _rankProcessor = new RankProcessor(liveModel);
+            if (isLocalInference)
+            {
+                LiveModel liveModel = new LiveModel(GetClientConfigurationForLiveModel());
+                liveModel.Init();
+                _rankProcessor = new RankProcessor(liveModel);
+            }
         }
 
         /// <summary> Initializes a new instance of PersonalizerClient. </summary>
@@ -109,15 +113,17 @@ namespace Azure.AI.Personalizer
         /// <param name="endpoint"> Supported Cognitive Services endpoint. </param>
         /// <param name="credential"> A credential used to authenticate to an Azure Service. </param>
         /// <param name="isLocalInference"> A flag to determine whether to use local inference. </param>
-        /// <param name="configuration"> A configuration to use local reference. </param>
         /// <param name="options"> The options for configuring the client. </param>
-        public PersonalizerClient(Uri endpoint, AzureKeyCredential credential, bool isLocalInference, Configuration configuration, PersonalizerClientOptions options = null) :
+        public PersonalizerClient(Uri endpoint, AzureKeyCredential credential, bool isLocalInference, PersonalizerClientOptions options = null) :
             this(endpoint, credential, options)
         {
             _isLocalInference = isLocalInference;
-            LiveModel liveModel = new LiveModel(configuration);
-            liveModel.Init();
-            _rankProcessor = new RankProcessor(liveModel);
+            if (isLocalInference)
+            {
+                LiveModel liveModel = new LiveModel(GetClientConfigurationForLiveModel());
+                liveModel.Init();
+                _rankProcessor = new RankProcessor(liveModel);
+            }
         }
 
         /// <summary> Initializes a new instance of PersonalizerClient. </summary>
@@ -156,8 +162,6 @@ namespace Azure.AI.Personalizer
                 }
                 else
                 {
-                    Models.PersonalizerClientProperties result = await ClientConfigurationRestClient.PostAsync(cancellationToken).ConfigureAwait(false);
-                    Console.WriteLine("InternalId: "+result.ApplicationID+"\nStorageBlobUri: "+result.ModelBlobUri+"\nLearningMode: "+result.ProtocolVersion+"\nExploration Percentage: "+result.InitialExplorationEpsilon+"\ninitialCommandline: "+result.InitialCommandLine);
                     return await RankRestClient.RankAsync(options, cancellationToken).ConfigureAwait(false);
                 }
             }
@@ -189,8 +193,6 @@ namespace Azure.AI.Personalizer
         /// <param name="cancellationToken"> The cancellation token to use. </param>
         public virtual async Task<Response<PersonalizerRankResult>> RankAsync(IEnumerable<PersonalizerRankableAction> actions, IEnumerable<object> contextFeatures, CancellationToken cancellationToken = default)
         {
-            Models.PersonalizerClientProperties result = await ClientConfigurationRestClient.PostAsync(cancellationToken).ConfigureAwait(false);
-            Console.WriteLine("InternalId: " + result.ApplicationID + "\nStorageBlobUri: " + result.ModelBlobUri + "\nLearningMode: " + result.ProtocolVersion + "\nExploration Percentage: " + result.InitialExplorationEpsilon + "\ninitialCommandline: " + result.InitialCommandLine);
             PersonalizerRankOptions options = new PersonalizerRankOptions(actions, contextFeatures);
             return await RankAsync(options, cancellationToken).ConfigureAwait(false);
         }
@@ -210,9 +212,7 @@ namespace Azure.AI.Personalizer
                 }
                 else
                 {
-                    Models.PersonalizerClientProperties result = ClientConfigurationRestClient.Post(cancellationToken);
-                    Console.WriteLine("InternalId: " + result.ApplicationID + "\nStorageBlobUri: " + result.ModelBlobUri + "\nLearningMode: " + result.ProtocolVersion + "\nExploration Percentage: " + result.InitialExplorationEpsilon + "\ninitialCommandline: " + result.InitialCommandLine);
-                    return RankRestClient.Rank(options, cancellationToken);
+                   return RankRestClient.Rank(options, cancellationToken);
                 }
             }
             catch (Exception e)
@@ -517,6 +517,25 @@ namespace Azure.AI.Personalizer
                 scope.Failed(e);
                 throw;
             }
+        }
+
+        /// <summary> Gets the configuration details for the live model to use </summary>
+        internal Configuration GetClientConfigurationForLiveModel()
+        {
+            result = new Lazy<Models.PersonalizerClientProperties>(() => ClientConfigurationRestClient.Post());
+            Console.WriteLine("InternalId: " + result.Value.ApplicationID + "\nStorageBlobUri: " + result.Value.ModelBlobUri + "\nLearningMode: " + result.Value.LearningMode + "\nExploration Percentage: " + result.Value.InitialExplorationEpsilon + "\ninitialCommandline: " + result.Value.InitialCommandLine);
+
+            Configuration config = new Configuration();
+            // configure the personalizer loop
+            config["appid"] = result.Value.ApplicationID;
+
+            // set up the model
+            config["model.source"] = result.Value.ModelBlobUri;
+            config["model.vw.initial_command_line"] = result.Value.InitialCommandLine;
+            config["initial_exploration.epsilon"] = Convert.ToString(result.Value.InitialExplorationEpsilon, CultureInfo.InvariantCulture);
+            config["rank.learning.mode"] = Convert.ToString(result.Value.LearningMode, CultureInfo.InvariantCulture);
+            //return the config model
+            return config;
         }
     }
 }
