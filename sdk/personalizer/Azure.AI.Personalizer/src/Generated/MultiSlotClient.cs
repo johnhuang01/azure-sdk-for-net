@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using Azure;
 using Azure.Core;
 using Azure.Core.Pipeline;
+using Rl.Net;
 
 namespace Azure.AI.Personalizer
 {
@@ -19,6 +20,9 @@ namespace Azure.AI.Personalizer
     {
         private readonly ClientDiagnostics _clientDiagnostics;
         private readonly HttpPipeline _pipeline;
+        private readonly bool _isLocalInference;
+        private readonly RankProcessor _rankProcessor;
+
         internal MultiSlotRestClient RestClient { get; }
 
         /// <summary> Initializes a new instance of MultiSlotClient for mocking. </summary>
@@ -30,7 +34,7 @@ namespace Azure.AI.Personalizer
         /// <param name="endpoint"> Supported Cognitive Services endpoint. </param>
         /// <param name="credential"> A credential used to authenticate to an Azure Service. </param>
         /// <param name="options"> The options for configuring the client. </param>
-        public MultiSlotClient(string endpoint, AzureKeyCredential credential, PersonalizerBaseClientOptions options = null)
+        public MultiSlotClient(string endpoint, TokenCredential credential, PersonalizerClientOptions options = null)
         {
             if (endpoint == null)
             {
@@ -41,10 +45,68 @@ namespace Azure.AI.Personalizer
                 throw new ArgumentNullException(nameof(credential));
             }
 
-            options ??= new PersonalizerBaseClientOptions();
+            options ??= new PersonalizerClientOptions();
             _clientDiagnostics = new ClientDiagnostics(options);
-            _pipeline = HttpPipelineBuilder.Build(options, new AzureKeyCredentialPolicy(credential, "=Ocp-Apim-Subscription-Key"));
+            string[] scopes = { "https://cognitiveservices.azure.com/.default" };
+            _pipeline = HttpPipelineBuilder.Build(options, new BearerTokenAuthenticationPolicy(credential, scopes));
             RestClient = new MultiSlotRestClient(_clientDiagnostics, _pipeline, endpoint);
+        }
+
+        /// <summary> Initializes a new instance of PersonalizerClient. </summary>
+        /// <param name="endpoint"> Supported Cognitive Services endpoint. </param>
+        /// <param name="credential"> A credential used to authenticate to an Azure Service. </param>
+        /// <param name="isLocalInference"> A flag to determine whether to use local inference. </param>
+        /// <param name="configuration"> A configuration to use local reference. </param>
+        /// <param name="options"> The options for configuring the client. </param>
+        public MultiSlotClient(string endpoint, TokenCredential credential, bool isLocalInference, Configuration configuration, PersonalizerClientOptions options = null) :
+            this(endpoint, credential, options)
+        {
+            _isLocalInference = isLocalInference;
+            if (isLocalInference)
+            {
+                LiveModel liveModel = new LiveModel(configuration);
+                liveModel.Init();
+                _rankProcessor = new RankProcessor(liveModel);
+            }
+        }
+
+        /// <summary> Initializes a new instance of MultiSlotClient. </summary>
+        /// <param name="endpoint"> Supported Cognitive Services endpoint. </param>
+        /// <param name="credential"> A credential used to authenticate to an Azure Service. </param>
+        /// <param name="options"> The options for configuring the client. </param>
+        public MultiSlotClient(string endpoint, AzureKeyCredential credential, PersonalizerClientOptions options = null)
+        {
+            if (endpoint == null)
+            {
+                throw new ArgumentNullException(nameof(endpoint));
+            }
+            if (credential == null)
+            {
+                throw new ArgumentNullException(nameof(credential));
+            }
+
+            options ??= new PersonalizerClientOptions();
+            _clientDiagnostics = new ClientDiagnostics(options);
+            _pipeline = HttpPipelineBuilder.Build(options, new AzureKeyCredentialPolicy(credential, "Ocp-Apim-Subscription-Key"));
+            RestClient = new MultiSlotRestClient(_clientDiagnostics, _pipeline, endpoint);
+        }
+
+        /// <summary> Initializes a new instance of PersonalizerClient. </summary>
+        /// <param name="endpoint"> Supported Cognitive Services endpoint. </param>
+        /// <param name="credential"> A credential used to authenticate to an Azure Service. </param>
+        /// <param name="isLocalInference"> A flag to determine whether to use local inference. </param>
+        /// <param name="configuration"> A configuration to use local reference. </param>
+        /// <param name="options"> The options for configuring the client. </param>
+        public MultiSlotClient(string endpoint, AzureKeyCredential credential, bool isLocalInference, Configuration configuration, PersonalizerClientOptions options = null) :
+            this(endpoint, credential, options)
+        {
+            _isLocalInference = isLocalInference;
+            if (isLocalInference)
+            {
+                LiveModel liveModel = new LiveModel(configuration);
+                liveModel.Init();
+                _rankProcessor = new RankProcessor(liveModel);
+            }
         }
 
         /// <summary> Initializes a new instance of MultiSlotClient. </summary>

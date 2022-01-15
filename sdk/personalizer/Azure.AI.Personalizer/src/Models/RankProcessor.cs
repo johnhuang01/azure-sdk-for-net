@@ -27,14 +27,13 @@ namespace Azure.AI.Personalizer
 
         /// <summary> Submit a Personalizer rank request. Receives a context and a list of actions. Returns which of the provided actions should be used by your application, in rewardActionId. </summary>
         /// <param name="options"> A Personalizer Rank request. </param>
-        /// <param name="cancellationToken"> The cancellation token to use. </param>
-        public Response<PersonalizerRankResult> Rank(PersonalizerRankOptions options, CancellationToken cancellationToken = default)
+        public Response<PersonalizerRankResult> Rank(PersonalizerRankOptions options)
         {
             if (String.IsNullOrEmpty(options.EventId))
             {
                 options.EventId = Guid.NewGuid().ToString("N", CultureInfo.InvariantCulture);
             }
-            
+
             HashSet<string> excludedSet = new HashSet<string>(options.ExcludedActions);
 
             // Store the original action list
@@ -95,14 +94,14 @@ namespace Azure.AI.Personalizer
             int chosenActionIndex = multiSlotChosenActionIndex == -1 ? rankedIndices[0] - 1 : multiSlotChosenActionIndex;
 
             // take care of actions that are excluded in their original positions
-            if (excludedActions != null && excludedActions.Count() > 0)
+            if (excludedActions != null && excludedActions.Count > 0)
             {
-                var newRanking = new int[originalActions.Count()];
-                var probabilities = new float[originalActions.Count()];
+                var newRanking = new int[originalActions.Count];
+                var probabilities = new float[originalActions.Count];
 
                 // at the original position
                 // point the original position of ranked item
-                for (int i = 0; i < rankableActions.Count(); i++)
+                for (int i = 0; i < rankableActions.Count; i++)
                 {
                     //RankableActions is Actions - ExcludedActions
                     newRanking[rankableActions[i].Index] = rankableActions[rankedIndices[i] - 1].Index + 1;

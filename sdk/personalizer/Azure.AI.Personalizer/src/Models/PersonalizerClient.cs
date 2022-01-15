@@ -153,7 +153,7 @@ namespace Azure.AI.Personalizer
             {
                 if (_isLocalInference)
                 {
-                    return _rankProcessor.Rank(options, cancellationToken);
+                    return _rankProcessor.Rank(options);
                 }
                 else
                 {
@@ -203,7 +203,7 @@ namespace Azure.AI.Personalizer
             {
                 if (_isLocalInference)
                 {
-                    return _rankProcessor.Rank(options, cancellationToken);
+                    return _rankProcessor.Rank(options);
                 }
                 else
                 {

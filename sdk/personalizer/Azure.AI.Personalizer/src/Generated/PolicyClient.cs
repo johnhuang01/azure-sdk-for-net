@@ -30,7 +30,7 @@ namespace Azure.AI.Personalizer
         /// <param name="endpoint"> Supported Cognitive Services endpoint. </param>
         /// <param name="credential"> A credential used to authenticate to an Azure Service. </param>
         /// <param name="options"> The options for configuring the client. </param>
-        public PolicyClient(string endpoint, AzureKeyCredential credential, PersonalizerBaseClientOptions options = null)
+        public PolicyClient(string endpoint, TokenCredential credential, PersonalizerClientOptions options = null)
         {
             if (endpoint == null)
             {
@@ -41,9 +41,31 @@ namespace Azure.AI.Personalizer
                 throw new ArgumentNullException(nameof(credential));
             }
 
-            options ??= new PersonalizerBaseClientOptions();
+            options ??= new PersonalizerClientOptions();
             _clientDiagnostics = new ClientDiagnostics(options);
-            _pipeline = HttpPipelineBuilder.Build(options, new AzureKeyCredentialPolicy(credential, "=Ocp-Apim-Subscription-Key"));
+            string[] scopes = { "https://cognitiveservices.azure.com/.default" };
+            _pipeline = HttpPipelineBuilder.Build(options, new BearerTokenAuthenticationPolicy(credential, scopes));
+            RestClient = new PolicyRestClient(_clientDiagnostics, _pipeline, endpoint);
+        }
+
+        /// <summary> Initializes a new instance of PolicyClient. </summary>
+        /// <param name="endpoint"> Supported Cognitive Services endpoint. </param>
+        /// <param name="credential"> A credential used to authenticate to an Azure Service. </param>
+        /// <param name="options"> The options for configuring the client. </param>
+        public PolicyClient(string endpoint, AzureKeyCredential credential, PersonalizerClientOptions options = null)
+        {
+            if (endpoint == null)
+            {
+                throw new ArgumentNullException(nameof(endpoint));
+            }
+            if (credential == null)
+            {
+                throw new ArgumentNullException(nameof(credential));
+            }
+
+            options ??= new PersonalizerClientOptions();
+            _clientDiagnostics = new ClientDiagnostics(options);
+            _pipeline = HttpPipelineBuilder.Build(options, new AzureKeyCredentialPolicy(credential, "Ocp-Apim-Subscription-Key"));
             RestClient = new PolicyRestClient(_clientDiagnostics, _pipeline, endpoint);
         }
 

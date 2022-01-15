@@ -131,7 +131,7 @@ namespace Azure.AI.Personalizer
             {
                 if (_isLocalInference)
                 {
-                    return _rankProcessor.Rank(rankRequest, cancellationToken);
+                    return _rankProcessor.Rank(rankRequest);
                 }
                 else
                 {
