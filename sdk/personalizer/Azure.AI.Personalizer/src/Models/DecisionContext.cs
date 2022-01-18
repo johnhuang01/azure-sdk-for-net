@@ -40,9 +40,7 @@ namespace Azure.AI.Personalizer
         /// <summary> Properties from url </summary>
         [JsonProperty("FromUrl", NullValueHandling = NullValueHandling.Ignore)]
         [JsonConverter(typeof(JsonRawStringListConverter))]
-#pragma warning disable CA2227 // Collection properties should be read only
         public List<string> SharedFromUrl { get; set; }
-#pragma warning restore CA2227 // Collection properties should be read only
 
         /// <summary> Properties of documents </summary>
         [JsonProperty("_multi")]
