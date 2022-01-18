@@ -14,23 +14,23 @@ using Azure.Core.Pipeline;
 
 namespace Azure.AI.Personalizer
 {
-    /// <summary> The MultiSlot service client. </summary>
-    internal partial class MultiSlotClient
+    /// <summary> The ClientConfiguration service client. </summary>
+    public partial class ClientConfigurationClient
     {
         private readonly ClientDiagnostics _clientDiagnostics;
         private readonly HttpPipeline _pipeline;
-        internal MultiSlotRestClient RestClient { get; }
+        internal ClientConfigurationRestClient RestClient { get; }
 
-        /// <summary> Initializes a new instance of MultiSlotClient for mocking. </summary>
-        protected MultiSlotClient()
+        /// <summary> Initializes a new instance of ClientConfigurationClient for mocking. </summary>
+        protected ClientConfigurationClient()
         {
         }
 
-        /// <summary> Initializes a new instance of MultiSlotClient. </summary>
+        /// <summary> Initializes a new instance of ClientConfigurationClient. </summary>
         /// <param name="endpoint"> Supported Cognitive Services endpoint. </param>
         /// <param name="credential"> A credential used to authenticate to an Azure Service. </param>
         /// <param name="options"> The options for configuring the client. </param>
-        public MultiSlotClient(string endpoint, TokenCredential credential, PersonalizerClientOptions options = null)
+        public ClientConfigurationClient(string endpoint, TokenCredential credential, PersonalizerClientOptions options = null)
         {
             if (endpoint == null)
             {
@@ -45,14 +45,14 @@ namespace Azure.AI.Personalizer
             _clientDiagnostics = new ClientDiagnostics(options);
             string[] scopes = { "https://cognitiveservices.azure.com/.default" };
             _pipeline = HttpPipelineBuilder.Build(options, new BearerTokenAuthenticationPolicy(credential, scopes));
-            RestClient = new MultiSlotRestClient(_clientDiagnostics, _pipeline, endpoint);
+            RestClient = new ClientConfigurationRestClient(_clientDiagnostics, _pipeline, endpoint);
         }
 
-        /// <summary> Initializes a new instance of MultiSlotClient. </summary>
+        /// <summary> Initializes a new instance of ClientConfigurationClient. </summary>
         /// <param name="endpoint"> Supported Cognitive Services endpoint. </param>
         /// <param name="credential"> A credential used to authenticate to an Azure Service. </param>
         /// <param name="options"> The options for configuring the client. </param>
-        public MultiSlotClient(string endpoint, AzureKeyCredential credential, PersonalizerClientOptions options = null)
+        public ClientConfigurationClient(string endpoint, AzureKeyCredential credential, PersonalizerClientOptions options = null)
         {
             if (endpoint == null)
             {
@@ -66,30 +66,29 @@ namespace Azure.AI.Personalizer
             options ??= new PersonalizerClientOptions();
             _clientDiagnostics = new ClientDiagnostics(options);
             _pipeline = HttpPipelineBuilder.Build(options, new AzureKeyCredentialPolicy(credential, "Ocp-Apim-Subscription-Key"));
-            RestClient = new MultiSlotRestClient(_clientDiagnostics, _pipeline, endpoint);
+            RestClient = new ClientConfigurationRestClient(_clientDiagnostics, _pipeline, endpoint);
         }
 
-        /// <summary> Initializes a new instance of MultiSlotClient. </summary>
+        /// <summary> Initializes a new instance of ClientConfigurationClient. </summary>
         /// <param name="clientDiagnostics"> The handler for diagnostic messaging in the client. </param>
         /// <param name="pipeline"> The HTTP pipeline for sending and receiving REST requests and responses. </param>
         /// <param name="endpoint"> Supported Cognitive Services endpoint. </param>
-        internal MultiSlotClient(ClientDiagnostics clientDiagnostics, HttpPipeline pipeline, string endpoint)
+        internal ClientConfigurationClient(ClientDiagnostics clientDiagnostics, HttpPipeline pipeline, string endpoint)
         {
-            RestClient = new MultiSlotRestClient(clientDiagnostics, pipeline, endpoint);
+            RestClient = new ClientConfigurationRestClient(clientDiagnostics, pipeline, endpoint);
             _clientDiagnostics = clientDiagnostics;
             _pipeline = pipeline;
         }
 
-        /// <summary> Submit a Personalizer multi-slot rank request. Receives a context, a list of actions, and a list of slots. Returns which of the provided actions should be used in each slot, in each rewardActionId. </summary>
-        /// <param name="body"> A Personalizer multi-slot Rank request. </param>
+        /// <summary> Get configuration settings used in distributed Personalizer deployments. </summary>
         /// <param name="cancellationToken"> The cancellation token to use. </param>
-        public virtual async Task<Response<PersonalizerMultiSlotRankResult>> RankAsync(PersonalizerRankMultiSlotOptions body, CancellationToken cancellationToken = default)
+        public virtual async Task<Response<ClientConfiguration>> ListAsync(CancellationToken cancellationToken = default)
         {
-            using var scope = _clientDiagnostics.CreateScope("MultiSlotClient.Rank");
+            using var scope = _clientDiagnostics.CreateScope("ClientConfigurationClient.List");
             scope.Start();
             try
             {
-                return await RestClient.RankAsync(body, cancellationToken).ConfigureAwait(false);
+                return await RestClient.ListAsync(cancellationToken).ConfigureAwait(false);
             }
             catch (Exception e)
             {
@@ -98,16 +97,15 @@ namespace Azure.AI.Personalizer
             }
         }
 
-        /// <summary> Submit a Personalizer multi-slot rank request. Receives a context, a list of actions, and a list of slots. Returns which of the provided actions should be used in each slot, in each rewardActionId. </summary>
-        /// <param name="body"> A Personalizer multi-slot Rank request. </param>
+        /// <summary> Get configuration settings used in distributed Personalizer deployments. </summary>
         /// <param name="cancellationToken"> The cancellation token to use. </param>
-        public virtual Response<PersonalizerMultiSlotRankResult> Rank(PersonalizerRankMultiSlotOptions body, CancellationToken cancellationToken = default)
+        public virtual Response<ClientConfiguration> List(CancellationToken cancellationToken = default)
         {
-            using var scope = _clientDiagnostics.CreateScope("MultiSlotClient.Rank");
+            using var scope = _clientDiagnostics.CreateScope("ClientConfigurationClient.List");
             scope.Start();
             try
             {
-                return RestClient.Rank(body, cancellationToken);
+                return RestClient.List(cancellationToken);
             }
             catch (Exception e)
             {

@@ -25,8 +25,8 @@ namespace Azure.AI.Personalizer
         internal MultiSlotRestClient MultiSlotRestClient { get; set; }
         internal MultiSlotEventsRestClient MultiSlotEventsRestClient { get; set; }
 
-        internal Models.ClientConfigurationRestClient ClientConfigurationRestClient { get; set; }
-        internal Lazy<Models.PersonalizerClientProperties> result { get; set; }
+        internal ClientConfigurationRestClient ClientConfigurationRestClient { get; set; }
+        internal ClientConfiguration result { get; set; }
 
         /// <summary> Initializes a new instance of Personalizer Client for mocking. </summary>
         protected PersonalizerClient()
@@ -57,7 +57,7 @@ namespace Azure.AI.Personalizer
             EventsRestClient = new EventsRestClient(_clientDiagnostics, _pipeline, stringEndpoint);
             MultiSlotRestClient = new MultiSlotRestClient(_clientDiagnostics, _pipeline, stringEndpoint);
             MultiSlotEventsRestClient = new MultiSlotEventsRestClient(_clientDiagnostics, _pipeline, stringEndpoint);
-            ClientConfigurationRestClient = new Models.ClientConfigurationRestClient(_clientDiagnostics, _pipeline, stringEndpoint);
+            ClientConfigurationRestClient = new ClientConfigurationRestClient(_clientDiagnostics, _pipeline, stringEndpoint);
         }
 
         /// <summary> Initializes a new instance of PersonalizerClient. </summary>
@@ -72,9 +72,7 @@ namespace Azure.AI.Personalizer
             if (isLocalInference)
             {
                 //Intialize liveModel and call Rank processor
-                /*LiveModel liveModel = new LiveModel(GetClientConfigurationForLiveModel());
-                liveModel.Init();
-                _rankProcessor = new RankProcessor(liveModel);*/
+                Configuration config = GetClientConfigurationForLiveModel();
             }
         }
 
@@ -106,7 +104,7 @@ namespace Azure.AI.Personalizer
             EventsRestClient = new EventsRestClient(_clientDiagnostics, _pipeline, stringEndpoint);
             MultiSlotRestClient = new MultiSlotRestClient(_clientDiagnostics, _pipeline, stringEndpoint);
             MultiSlotEventsRestClient = new MultiSlotEventsRestClient(_clientDiagnostics, _pipeline, stringEndpoint);
-            ClientConfigurationRestClient = new Models.ClientConfigurationRestClient(_clientDiagnostics, _pipeline, stringEndpoint);
+            ClientConfigurationRestClient = new ClientConfigurationRestClient(_clientDiagnostics, _pipeline, stringEndpoint);
         }
 
         /// <summary> Initializes a new instance of PersonalizerClient. </summary>
@@ -121,9 +119,7 @@ namespace Azure.AI.Personalizer
             if (isLocalInference)
             {
                 //Intialize liveModel and Rankprocessor
-                /*LiveModel liveModel = new LiveModel(GetClientConfigurationForLiveModel());
-                liveModel.Init();
-                _rankProcessor = new RankProcessor(liveModel);*/
+                Configuration config = GetClientConfigurationForLiveModel();
             }
         }
 
@@ -143,7 +139,7 @@ namespace Azure.AI.Personalizer
             EventsRestClient = new EventsRestClient(_clientDiagnostics, _pipeline, stringEndpoint);
             MultiSlotRestClient = new MultiSlotRestClient(_clientDiagnostics, _pipeline, stringEndpoint);
             MultiSlotEventsRestClient = new MultiSlotEventsRestClient(_clientDiagnostics, _pipeline, stringEndpoint);
-            ClientConfigurationRestClient = new Models.ClientConfigurationRestClient(_clientDiagnostics, _pipeline, stringEndpoint);
+            ClientConfigurationRestClient = new ClientConfigurationRestClient(_clientDiagnostics, _pipeline, stringEndpoint);
             _clientDiagnostics = clientDiagnostics;
             _pipeline = pipeline;
         }
@@ -525,16 +521,16 @@ namespace Azure.AI.Personalizer
         /// <summary> Gets the configuration details for the live model to use </summary>
         internal Configuration GetClientConfigurationForLiveModel()
         {
-            result = new Lazy<Models.PersonalizerClientProperties>(() => ClientConfigurationRestClient.Post());
+            result = ClientConfigurationRestClient.List();
             Configuration config = new Configuration();
             // configure the personalizer loop
-            config["appid"] = result.Value.ApplicationID;
+            config["appid"] = result.ApplicationID;
 
             // set up the model
-            config["model.blob.uri"] = result.Value.ModelBlobUri;
-            config["vw.commandline"] = result.Value.InitialCommandLine;
-            config["initial_exploration.epsilon"] = Convert.ToString(result.Value.InitialExplorationEpsilon, CultureInfo.InvariantCulture);
-            config["rank.learning.mode"] = Convert.ToString(result.Value.LearningMode, CultureInfo.InvariantCulture);
+            config["model.blob.uri"] = result.ModelBlobUri;
+            config["vw.commandline"] = result.InitialCommandLine;
+            config["initial_exploration.epsilon"] = Convert.ToString(result.InitialExplorationEpsilon, CultureInfo.InvariantCulture);
+            config["rank.learning.mode"] = Convert.ToString(result.LearningMode, CultureInfo.InvariantCulture);
             //return the config model
             return config;
         }

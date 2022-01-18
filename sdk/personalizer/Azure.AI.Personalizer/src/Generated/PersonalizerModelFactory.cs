@@ -14,6 +14,21 @@ namespace Azure.AI.Personalizer
     /// <summary> Model factory for read-only models. </summary>
     public static partial class PersonalizerModelFactory
     {
+        /// <summary> Initializes a new instance of ClientConfiguration. </summary>
+        /// <param name="applicationID"> Unique identifier for this Personalizer instance. </param>
+        /// <param name="eventHubInteractionConnectionString"> Event hub connection string for sending interactions. </param>
+        /// <param name="eventHubObservationConnectionString"> Event hub connection string for sending observations. </param>
+        /// <param name="modelBlobUri"> SAS Uri for the inference model. </param>
+        /// <param name="initialExplorationEpsilon"> Exploration value used before downloading model in CB. </param>
+        /// <param name="learningMode"> Learning Modes for Personalizer. </param>
+        /// <param name="initialCommandLine"> Command line used for prediction before downloading model. </param>
+        /// <param name="protocolVersion"> Version used by reinforcement learning client. </param>
+        /// <returns> A new <see cref="Personalizer.ClientConfiguration"/> instance for mocking. </returns>
+        public static ClientConfiguration ClientConfiguration(string applicationID = null, string eventHubInteractionConnectionString = null, string eventHubObservationConnectionString = null, string modelBlobUri = null, float? initialExplorationEpsilon = null, PersonalizerLearningMode? learningMode = null, string initialCommandLine = null, int? protocolVersion = null)
+        {
+            return new ClientConfiguration(applicationID, eventHubInteractionConnectionString, eventHubObservationConnectionString, modelBlobUri, initialExplorationEpsilon, learningMode, initialCommandLine, protocolVersion);
+        }
+
         /// <summary> Initializes a new instance of PersonalizerEvaluation. </summary>
         /// <param name="id"> The ID of the evaluation. </param>
         /// <param name="name"> The name of the evaluation. </param>
