@@ -56,13 +56,17 @@ namespace Azure.AI.Personalizer
                 ++idx;
             }
 
-            // Remove excluded actions in options
+            // Save the original actions and remove excluded actions in options
+            IEnumerable<PersonalizerRankableAction> storedActions = options.Actions;
             options.Actions = options.Actions.Where(action => !excludedSet.Contains(action.Id));
 
             // Convert options to the compatible parameter for ChooseRank
             DecisionContext decisionContext = new DecisionContext(options);
             var contextJson = JsonConvert.SerializeObject(decisionContext);
             ActionFlags flags = options.DeferActivation == true ? ActionFlags.Deferred : ActionFlags.Default;
+
+            // Restore the original actions
+            options.Actions = storedActions;
 
             // Call ChooseRank of local RL.Net
             RankingResponse rankingResponse = _liveModel.ChooseRank(options.EventId, contextJson, flags);
