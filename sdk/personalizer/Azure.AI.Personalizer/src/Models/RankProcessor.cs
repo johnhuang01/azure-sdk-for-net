@@ -77,7 +77,61 @@ namespace Azure.AI.Personalizer
             return Response.FromValue(value, default);
         }
 
-        public static PersonalizerRankResult GenerateRankResult(List<PersonalizerRankableAction> originalActions,
+        /// <summary> Submit a Personalizer rank request. Receives a context and a list of actions. Returns which of the provided actions should be used by your application, in rewardActionId. </summary>
+        /// <param name="options"> A Personalizer multi-slot Rank request. </param>
+        public Response<PersonalizerMultiSlotRankResult> Rank(PersonalizerRankMultiSlotOptions options)
+        {
+            if (String.IsNullOrEmpty(options.EventId))
+            {
+                options.EventId = Guid.NewGuid().ToString("N", CultureInfo.InvariantCulture);
+            }
+
+            // Convert options to the compatible parameter for ChooseRank
+            DecisionContext decisionContext = new DecisionContext(options);
+            var contextJson = JsonConvert.SerializeObject(decisionContext);
+            ActionFlags flags = options.DeferActivation == true ? ActionFlags.Deferred : ActionFlags.Default;
+            int[] baselineActions = ExtractBaselineActionsFromRankRequest(options);
+
+            // Call ChooseRank of local RL.Net
+            MultiSlotResponseDetailed multiSlotResponse = _liveModel.RequestMultiSlotDecisionDetailed(options.EventId, contextJson, flags, baselineActions);
+
+            // Convert response to PersonalizerRankResult
+            var value = GenerateMultiSlotRankResponse(options, multiSlotResponse, options.EventId);
+
+            return Response.FromValue(value, default);
+        }
+
+        public static PersonalizerMultiSlotRankResult GenerateMultiSlotRankResponse(PersonalizerRankMultiSlotOptions decisionRequest, MultiSlotResponseDetailed multiSlotResponse, string eventId)
+        {
+            Dictionary<long, string> actionIndexToActionId = decisionRequest.Actions
+                .Select((action, index) => new { action, index = (long)index })
+                .ToDictionary(obj => obj.index, obj => obj.action.Id);
+
+            List<PersonalizerSlotResult> slots = multiSlotResponse
+                .Select(slotRanking => new PersonalizerSlotResult(slotRanking.SlotId)
+                {
+                    RewardActionId = actionIndexToActionId[slotRanking.ChosenAction]
+                })
+                .ToList();
+
+            return new PersonalizerMultiSlotRankResult(slots, eventId);
+        }
+
+        private static int[] ExtractBaselineActionsFromRankRequest(PersonalizerRankMultiSlotOptions request)
+        {
+            Dictionary<string, int> actionIdToIndex = GetActionIdToIndexMapping(request.Actions);
+            return request.Slots
+                .Select(slot => actionIdToIndex[slot.BaselineAction]).ToArray();
+        }
+
+        private static Dictionary<string, int> GetActionIdToIndexMapping(IList<PersonalizerRankableAction> actions)
+        {
+            return actions
+                .Select((action, index) => new { action, index })
+                .ToDictionary(obj => obj.action.Id, obj => obj.index);
+        }
+
+        private static PersonalizerRankResult GenerateRankResult(List<PersonalizerRankableAction> originalActions,
             List<PersonalizerRankableAction> rankableActions, List<PersonalizerRankableAction> excludedActions, RankingResponse rankingResponse, string eventId)
         {
             var rankedIndices = rankingResponse?.Select(actionProbability => ((int)actionProbability.ActionIndex + 1)).ToArray();
@@ -88,7 +142,7 @@ namespace Azure.AI.Personalizer
             return GenerateRankResponse(originalActions, rankableActions, excludedActions, rankedIndices, rankingProbabilities, eventId);
         }
 
-        public static PersonalizerRankResult GenerateRankResponse(List<PersonalizerRankableAction> originalActions,
+        private static PersonalizerRankResult GenerateRankResponse(List<PersonalizerRankableAction> originalActions,
             List<PersonalizerRankableAction> rankableActions, List<PersonalizerRankableAction> excludedActions, int[] rankedIndices, float[] rankingProbabilities, string eventId, int multiSlotChosenActionIndex = -1)
         {
             // excluded actions are not passed into VW

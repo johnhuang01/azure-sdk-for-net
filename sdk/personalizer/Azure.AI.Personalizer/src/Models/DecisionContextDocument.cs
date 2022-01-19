@@ -52,6 +52,6 @@ namespace Azure.AI.Personalizer
         /// </summary>
         [JsonProperty("sj", NullValueHandling = NullValueHandling.Ignore)]
         [JsonConverter(typeof(JsonRawStringListConverter))]
-        public List<string> SlotJson { get; }
+        public List<string> SlotJson { get; set; }
     }
 }

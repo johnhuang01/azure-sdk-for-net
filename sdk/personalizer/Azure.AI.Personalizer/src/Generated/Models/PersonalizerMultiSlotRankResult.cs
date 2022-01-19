@@ -31,6 +31,6 @@ namespace Azure.AI.Personalizer
         /// <summary> Each slot has a corresponding rewardActionID which is the action ID recommended by Personalizer. </summary>
         public IReadOnlyList<PersonalizerSlotResult> Slots { get; }
         /// <summary> The eventId for the round trip from request to response. </summary>
-        public string EventId { get; }
+        public string EventId { get; set; }
     }
 }
