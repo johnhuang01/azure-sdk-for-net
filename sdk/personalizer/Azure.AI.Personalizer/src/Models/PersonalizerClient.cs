@@ -78,6 +78,7 @@ namespace Azure.AI.Personalizer
             if (isLocalInference)
             {
                 //Intialize liveModel and call Rank processor
+                //ToDo: Working on changes to support token authentication in RLClient
                 Configuration config = GetConfigurationForLiveModel("Token", "token");
             }
         }
