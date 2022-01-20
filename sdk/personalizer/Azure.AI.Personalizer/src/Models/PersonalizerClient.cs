@@ -4,6 +4,8 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.IO;
+using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using Azure.Core;
@@ -19,14 +21,17 @@ namespace Azure.AI.Personalizer
         private readonly ClientDiagnostics _clientDiagnostics;
         private readonly HttpPipeline _pipeline;
         private readonly bool _isLocalInference;
+        private string stringEndpoint;
+        private string apiKey;
 
         internal RankRestClient RankRestClient { get; set; }
         internal EventsRestClient EventsRestClient { get; set; }
         internal MultiSlotRestClient MultiSlotRestClient { get; set; }
         internal MultiSlotEventsRestClient MultiSlotEventsRestClient { get; set; }
-
-        internal Models.ClientConfigurationRestClient ClientConfigurationRestClient { get; set; }
-        internal Lazy<Models.PersonalizerClientProperties> result { get; set; }
+        internal ServiceConfigurationRestClient ServiceConfigurationRestClient { get; set; }
+        internal PolicyRestClient PolicyRestClient { get; set; }
+        internal PersonalizerServiceProperties _personalizerServiceProperties { get; set; }
+        internal PersonalizerPolicy _personalizerPolicy { get; set; }
 
         /// <summary> Initializes a new instance of Personalizer Client for mocking. </summary>
         protected PersonalizerClient()
@@ -52,12 +57,13 @@ namespace Azure.AI.Personalizer
             _clientDiagnostics = new ClientDiagnostics(options);
             string[] scopes = { "https://cognitiveservices.azure.com/.default" };
             _pipeline = HttpPipelineBuilder.Build(options, new BearerTokenAuthenticationPolicy(credential, scopes));
-            string stringEndpoint = endpoint.AbsoluteUri;
+            stringEndpoint = endpoint.AbsoluteUri;
             RankRestClient = new RankRestClient(_clientDiagnostics, _pipeline, stringEndpoint);
             EventsRestClient = new EventsRestClient(_clientDiagnostics, _pipeline, stringEndpoint);
             MultiSlotRestClient = new MultiSlotRestClient(_clientDiagnostics, _pipeline, stringEndpoint);
             MultiSlotEventsRestClient = new MultiSlotEventsRestClient(_clientDiagnostics, _pipeline, stringEndpoint);
-            ClientConfigurationRestClient = new Models.ClientConfigurationRestClient(_clientDiagnostics, _pipeline, stringEndpoint);
+            ServiceConfigurationRestClient = new ServiceConfigurationRestClient(_clientDiagnostics, _pipeline, stringEndpoint);
+            PolicyRestClient = new PolicyRestClient(_clientDiagnostics, _pipeline, stringEndpoint);
         }
 
         /// <summary> Initializes a new instance of PersonalizerClient. </summary>
@@ -72,9 +78,7 @@ namespace Azure.AI.Personalizer
             if (isLocalInference)
             {
                 //Intialize liveModel and call Rank processor
-                /*LiveModel liveModel = new LiveModel(GetClientConfigurationForLiveModel());
-                liveModel.Init();
-                _rankProcessor = new RankProcessor(liveModel);*/
+                Configuration config = GetConfigurationForLiveModel("Token", "token");
             }
         }
 
@@ -97,16 +101,17 @@ namespace Azure.AI.Personalizer
             {
                 throw new ArgumentNullException(nameof(credential));
             }
-
+            apiKey = credential.Key;
             options ??= new PersonalizerClientOptions();
             _clientDiagnostics = new ClientDiagnostics(options);
             _pipeline = HttpPipelineBuilder.Build(options, new AzureKeyCredentialPolicy(credential, "Ocp-Apim-Subscription-Key"));
-            string stringEndpoint = endpoint.AbsoluteUri;
+            stringEndpoint = endpoint.AbsoluteUri;
             RankRestClient = new RankRestClient(_clientDiagnostics, _pipeline, stringEndpoint);
             EventsRestClient = new EventsRestClient(_clientDiagnostics, _pipeline, stringEndpoint);
             MultiSlotRestClient = new MultiSlotRestClient(_clientDiagnostics, _pipeline, stringEndpoint);
             MultiSlotEventsRestClient = new MultiSlotEventsRestClient(_clientDiagnostics, _pipeline, stringEndpoint);
-            ClientConfigurationRestClient = new Models.ClientConfigurationRestClient(_clientDiagnostics, _pipeline, stringEndpoint);
+            ServiceConfigurationRestClient = new ServiceConfigurationRestClient(_clientDiagnostics, _pipeline, stringEndpoint);
+            PolicyRestClient = new PolicyRestClient(_clientDiagnostics, _pipeline, stringEndpoint);
         }
 
         /// <summary> Initializes a new instance of PersonalizerClient. </summary>
@@ -121,9 +126,7 @@ namespace Azure.AI.Personalizer
             if (isLocalInference)
             {
                 //Intialize liveModel and Rankprocessor
-                /*LiveModel liveModel = new LiveModel(GetClientConfigurationForLiveModel());
-                liveModel.Init();
-                _rankProcessor = new RankProcessor(liveModel);*/
+                Configuration config = GetConfigurationForLiveModel("apiKey", apiKey);
             }
         }
 
@@ -143,7 +146,6 @@ namespace Azure.AI.Personalizer
             EventsRestClient = new EventsRestClient(_clientDiagnostics, _pipeline, stringEndpoint);
             MultiSlotRestClient = new MultiSlotRestClient(_clientDiagnostics, _pipeline, stringEndpoint);
             MultiSlotEventsRestClient = new MultiSlotEventsRestClient(_clientDiagnostics, _pipeline, stringEndpoint);
-            ClientConfigurationRestClient = new Models.ClientConfigurationRestClient(_clientDiagnostics, _pipeline, stringEndpoint);
             _clientDiagnostics = clientDiagnostics;
             _pipeline = pipeline;
         }
@@ -523,18 +525,28 @@ namespace Azure.AI.Personalizer
         }
 
         /// <summary> Gets the configuration details for the live model to use </summary>
-        internal Configuration GetClientConfigurationForLiveModel()
+        internal Configuration GetConfigurationForLiveModel(string authType, string authValue)
         {
-            result = new Lazy<Models.PersonalizerClientProperties>(() => ClientConfigurationRestClient.Post());
+            _personalizerServiceProperties = ServiceConfigurationRestClient.Get();
+            _personalizerPolicy = PolicyRestClient.Get();
             Configuration config = new Configuration();
-            // configure the personalizer loop
-            config["appid"] = result.Value.ApplicationID;
-
             // set up the model
-            config["model.blob.uri"] = result.Value.ModelBlobUri;
-            config["vw.commandline"] = result.Value.InitialCommandLine;
-            config["initial_exploration.epsilon"] = Convert.ToString(result.Value.InitialExplorationEpsilon, CultureInfo.InvariantCulture);
-            config["rank.learning.mode"] = Convert.ToString(result.Value.LearningMode, CultureInfo.InvariantCulture);
+            if (authType == "apiKey")
+            {
+                config["http.api.key"] = authValue;
+            }
+            else
+            {
+                //ToDo: Working on changes to support token authentication in RLClient
+                config["http.tokent.key"] = authValue;
+            }
+            config["interaction.http.api.host"] = stringEndpoint+"personalizer/v1.1-preview.2/logs/interactions";
+            config["observation.http.api.host"] = stringEndpoint+"personalizer/v1.1-preview.2/logs/observations";
+            config["model.blob.uri"] = stringEndpoint + "personalizer/v1.1-preview.1/model";
+            config["vw.commandline"] = _personalizerPolicy.Arguments;
+            config["protocol.version"] = "2";
+            config["initial_exploration.epsilon"] = Convert.ToString(_personalizerServiceProperties.ExplorationPercentage, CultureInfo.InvariantCulture);
+            config["rank.learning.mode"] = Convert.ToString(_personalizerServiceProperties.LearningMode, CultureInfo.InvariantCulture);
             //return the config model
             return config;
         }
