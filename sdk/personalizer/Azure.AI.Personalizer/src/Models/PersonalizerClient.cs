@@ -78,7 +78,7 @@ namespace Azure.AI.Personalizer
             if (isLocalInference)
             {
                 //Intialize liveModel and call Rank processor
-                //ToDo: Working on changes to support token authentication in RLClient
+                //ToDo:TASK 13057958: Working on changes to support token authentication in RLClient
                 //Configuration config = GetConfigurationForLiveModel("Token", "token");
             }
         }
@@ -538,11 +538,12 @@ namespace Azure.AI.Personalizer
             }
             else
             {
-                //ToDo: Working on changes to support token authentication in RLClient
+                //ToDo: TASK 13057958 Working on changes to support token authentication in RLClient
                 //config["http.token.key"] = authValue;
             }
             config["interaction.http.api.host"] = stringEndpoint+"personalizer/v1.1-preview.2/logs/interactions";
             config["observation.http.api.host"] = stringEndpoint+"personalizer/v1.1-preview.2/logs/observations";
+            //ToDo: TASK 13057958 Working on changes to support model api in RL.Net
             config["model.blob.uri"] = stringEndpoint + "personalizer/v1.1-preview.1/model";
             config["vw.commandline"] = _personalizerPolicy.Arguments;
             config["protocol.version"] = "2";
