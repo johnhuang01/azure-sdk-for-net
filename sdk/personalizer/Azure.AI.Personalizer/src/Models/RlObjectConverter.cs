@@ -96,10 +96,7 @@ namespace Azure.AI.Personalizer
                 .ToDictionary(obj => obj.index, obj => obj.action.Id);
 
             List<PersonalizerSlotResult> slots = multiSlotResponse
-                .Select(slotRanking => new PersonalizerSlotResult(slotRanking.SlotId)
-                {
-                    RewardActionId = actionIndexToActionId[slotRanking.ChosenAction]
-                })
+                .Select(slotRanking => new PersonalizerSlotResult(slotRanking.SlotId, actionIndexToActionId[slotRanking.ChosenAction]))
                 .ToList();
 
             return new PersonalizerMultiSlotRankResult(slots, eventId);

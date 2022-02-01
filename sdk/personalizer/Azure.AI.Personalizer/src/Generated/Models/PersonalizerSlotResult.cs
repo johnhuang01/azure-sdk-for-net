@@ -34,6 +34,6 @@ namespace Azure.AI.Personalizer
             RewardActionId = rewardActionId;
         }
         /// <summary> RewardActionID is the action ID recommended by Personalizer. </summary>
-        public string RewardActionId { get; set; }
+        public string RewardActionId { get; }
     }
 }

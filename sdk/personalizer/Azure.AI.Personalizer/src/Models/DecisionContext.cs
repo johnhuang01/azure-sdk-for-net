@@ -71,7 +71,7 @@ namespace Azure.AI.Personalizer
             List<string> result = new List<string>();
             foreach (object feature in features)
             {
-                result.Add(System.Text.Json.JsonSerializer.Serialize(feature));
+                result.Add(JsonSerializer.Serialize(feature));
             }
 
             return result;
