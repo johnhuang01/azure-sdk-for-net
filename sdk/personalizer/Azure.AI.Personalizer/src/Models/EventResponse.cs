@@ -36,9 +36,6 @@ namespace Azure.AI.Personalizer
         /// <summary> Client reqauest id </summary>
         public override string ClientRequestId { get; set; }
 
-        /// <summary> Is disposed </summary>
-        public bool IsDisposed { get; private set; }
-
         /// <summary> Dispose </summary>
         public override void Dispose()
         {
