@@ -30,10 +30,10 @@ namespace Azure.AI.Personalizer
         /// <summary> Reason phrase </summary>
         public override string ReasonPhrase { get; }
 
-        /// <summary> Reason phrase </summary>
+        /// <summary> Content stream </summary>
         public override Stream ContentStream { get; set; }
 
-        /// <summary> Reason phrase </summary>
+        /// <summary> Client reqauest id </summary>
         public override string ClientRequestId { get; set; }
 
         /// <summary> Is disposed </summary>
@@ -45,16 +45,16 @@ namespace Azure.AI.Personalizer
             GC.SuppressFinalize(this);
         }
 
-        /// <summary> Is error </summary>
+        /// <summary> Contains the header </summary>
         protected override bool ContainsHeader(string name)
         {
             return TryGetHeaderValues(name, out _);
         }
 
-        /// <summary> Is error </summary>
+        /// <summary> Enumerate the headers </summary>
         protected override IEnumerable<HttpHeader> EnumerateHeaders() => _headers.Select(h => new HttpHeader(h.Key, string.Join(",", h.Value)));
 
-        /// <summary> Is error </summary>
+        /// <summary> Try to get the header </summary>
         protected override bool TryGetHeader(string name, out string value)
         {
             if (_headers.TryGetValue(name, out List<string> values))
@@ -67,7 +67,7 @@ namespace Azure.AI.Personalizer
             return false;
         }
 
-        /// <summary> Is error </summary>
+        /// <summary> Try to get the header values </summary>
         protected override bool TryGetHeaderValues(string name, out IEnumerable<string> values)
         {
             var result = _headers.TryGetValue(name, out List<string> valuesList);
