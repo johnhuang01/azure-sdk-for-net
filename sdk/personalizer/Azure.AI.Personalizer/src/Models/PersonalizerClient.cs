@@ -28,9 +28,7 @@ namespace Azure.AI.Personalizer
         private string[] scopes = { "https://cognitiveservices.azure.com/.default" };
         private float subsampleRate = 1.0f;
 
-        private Lazy<RankProcessor> _rankProcessor;
-        private readonly RlNetProcessor _rlNetProcessor;
-
+        private Lazy<RankProcessor> rankProcessor;
         internal RankRestClient RankRestClient { get; set; }
         internal EventsRestClient EventsRestClient { get; set; }
         internal MultiSlotRestClient MultiSlotRestClient { get; set; }
@@ -87,7 +85,7 @@ namespace Azure.AI.Personalizer
             {
                 validateAndAssignSampleRate(subsampleRate);
                 //lazy load Rankprocessor
-                _rankProcessor = new Lazy<RankProcessor>(() => GetConfigurationForRankProcessor());
+                rankProcessor = new Lazy<RankProcessor>(() => GetConfigurationForRankProcessor());
             }
         }
 
@@ -137,7 +135,7 @@ namespace Azure.AI.Personalizer
             {
                 validateAndAssignSampleRate(subsampleRate);
                 //lazy load Rankprocessor
-                _rankProcessor = new Lazy<RankProcessor>(() => GetConfigurationForRankProcessor());
+                rankProcessor = new Lazy<RankProcessor>(() => GetConfigurationForRankProcessor());
             }
         }
 
@@ -173,7 +171,7 @@ namespace Azure.AI.Personalizer
                 if (isLocalInference)
                 {
                     validateAndUpdateLiveModelConfig();
-                    return _rankProcessor.Value.Rank(options);
+                    return rankProcessor.Value.Rank(options);
                 }
                 else
                 {
@@ -224,7 +222,7 @@ namespace Azure.AI.Personalizer
                 if (isLocalInference)
                 {
                     validateAndUpdateLiveModelConfig();
-                    return _rankProcessor.Value.Rank(options);
+                    return rankProcessor.Value.Rank(options);
                 }
                 else
                 {
@@ -275,7 +273,7 @@ namespace Azure.AI.Personalizer
                 if (isLocalInference)
                 {
                     validateAndUpdateLiveModelConfig();
-                    return _rankProcessor.Value.Rank(options);
+                    return rankProcessor.Value.Rank(options);
                 }
                 else
                 {
@@ -333,7 +331,7 @@ namespace Azure.AI.Personalizer
                 if (isLocalInference)
                 {
                     validateAndUpdateLiveModelConfig();
-                    return _rankProcessor.Value.Rank(options);
+                    return rankProcessor.Value.Rank(options);
                 }
                 else
                 {
@@ -608,7 +606,7 @@ namespace Azure.AI.Personalizer
         }
 
         /// <summary> Gets the rank process initiated with live model to use </summary>
-        internal RankProcessor GetConfigurationForRankProcessor(CancellationToken cancellationToken = default)
+        private RankProcessor GetConfigurationForRankProcessor(CancellationToken cancellationToken = default)
         {
             Configuration config = new Configuration();
             // set up the model
@@ -653,7 +651,7 @@ namespace Azure.AI.Personalizer
         }
 
         /// <summary> Update the config details periodically based on liveModelRefreshTimeInMinutes or when bearer token is expired </summary>
-        internal void validateAndUpdateLiveModelConfig()
+        private void validateAndUpdateLiveModelConfig()
         {
             if ((tokenCredential != null &&
                 DateTimeOffset.Compare(tokenExpiry, DateTimeOffset.MinValue) != 0 &&
@@ -661,7 +659,7 @@ namespace Azure.AI.Personalizer
                 (DateTimeOffset.Compare(liveModelLastRefresh, DateTimeOffset.MinValue) != 0 &&
                 DateTimeOffset.Compare(liveModelLastRefresh.AddMinutes(liveModelRefreshTimeInMinutes), DateTimeOffset.UtcNow) < 0))
             {
-                _rankProcessor = new Lazy<RankProcessor>(() => GetConfigurationForRankProcessor());
+                rankProcessor = new Lazy<RankProcessor>(() => GetConfigurationForRankProcessor());
             }
         }
 
