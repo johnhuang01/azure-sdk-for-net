@@ -616,13 +616,17 @@ namespace Azure.AI.Personalizer
             {
                 config["http.api.key"] = azureKeyCredential.Key;
             }
-            else
+            else if (tokenCredential != null)
             {
                 var tokenRequestContext = new TokenRequestContext(scopes);
                 AccessToken token = tokenCredential.GetToken(tokenRequestContext, cancellationToken);
                 config["http.api.key"] = "Bearer " + token.Token;
                 config["http.api.header.key.name"] = "Authorization";
                 tokenExpiry = token.ExpiresOn;
+            }
+            else
+            {
+                throw new ApplicationException("PersonalizerClient is neither initalized with Token Credential nor with AzureKey Credential");
             }
             personalizerServiceProperties = ServiceConfigurationRestClient.Get(cancellationToken);
             personalizerPolicy = PolicyRestClient.Get(cancellationToken);
