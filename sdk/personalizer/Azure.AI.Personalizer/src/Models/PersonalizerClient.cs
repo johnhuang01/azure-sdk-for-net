@@ -20,9 +20,16 @@ namespace Azure.AI.Personalizer
         private readonly HttpPipeline _pipeline;
         private readonly bool _isLocalInference;
         private string stringEndpoint;
-        private string apiKey;
+        private AzureKeyCredential _azureKeyCredential;
+        private TokenCredential _tokenCredential;
+        private int liveModelRefreshTimeInMinutes = 15;
+        private string _credentialType;
+        private DateTimeOffset tokenExpiry;
+        private DateTimeOffset liveModelLastRefresh;
+        private string[] scopes = { "https://cognitiveservices.azure.com/.default" };
         private float subsampleRate = 1.0f;
 
+        private Lazy<RankProcessor> _rankProcessor;
         private readonly RlNetProcessor _rlNetProcessor;
 
         internal RankRestClient RankRestClient { get; set; }
@@ -56,7 +63,6 @@ namespace Azure.AI.Personalizer
 
             options ??= new PersonalizerClientOptions();
             _clientDiagnostics = new ClientDiagnostics(options);
-            string[] scopes = { "https://cognitiveservices.azure.com/.default" };
             _pipeline = HttpPipelineBuilder.Build(options, new BearerTokenAuthenticationPolicy(credential, scopes));
             stringEndpoint = endpoint.AbsoluteUri;
             RankRestClient = new RankRestClient(_clientDiagnostics, _pipeline, stringEndpoint);
@@ -65,6 +71,8 @@ namespace Azure.AI.Personalizer
             MultiSlotEventsRestClient = new MultiSlotEventsRestClient(_clientDiagnostics, _pipeline, stringEndpoint);
             ServiceConfigurationRestClient = new ServiceConfigurationRestClient(_clientDiagnostics, _pipeline, stringEndpoint);
             PolicyRestClient = new PolicyRestClient(_clientDiagnostics, _pipeline, stringEndpoint);
+            _credentialType = "Token";
+            _tokenCredential = credential;
         }
 
         /// <summary> Initializes a new instance of PersonalizerClient. </summary>
@@ -80,12 +88,8 @@ namespace Azure.AI.Personalizer
             if (isLocalInference)
             {
                 validateAndAssignSampleRate(subsampleRate);
-                //Intialize liveModel and call Rank processor
-                //ToDo:TASK 13057958: Working on changes to support token authentication in RLClient
-                Configuration configuration = GetConfigurationForLiveModel("Token", "token");
-                LiveModel liveModel = new LiveModel(configuration);
-                liveModel.Init();
-                _rlNetProcessor = new RlNetProcessor(liveModel);
+                //lazy load Rankprocessor
+                _rankProcessor = new Lazy<RankProcessor>(() => GetConfigurationForLiveModel(_credentialType));
             }
         }
 
@@ -108,7 +112,6 @@ namespace Azure.AI.Personalizer
             {
                 throw new ArgumentNullException(nameof(credential));
             }
-            apiKey = credential.Key;
             options ??= new PersonalizerClientOptions();
             _clientDiagnostics = new ClientDiagnostics(options);
             _pipeline = HttpPipelineBuilder.Build(options, new AzureKeyCredentialPolicy(credential, "Ocp-Apim-Subscription-Key"));
@@ -119,6 +122,8 @@ namespace Azure.AI.Personalizer
             MultiSlotEventsRestClient = new MultiSlotEventsRestClient(_clientDiagnostics, _pipeline, stringEndpoint);
             ServiceConfigurationRestClient = new ServiceConfigurationRestClient(_clientDiagnostics, _pipeline, stringEndpoint);
             PolicyRestClient = new PolicyRestClient(_clientDiagnostics, _pipeline, stringEndpoint);
+            _credentialType = "apiKey";
+            _azureKeyCredential = credential;
         }
 
         /// <summary> Initializes a new instance of PersonalizerClient. </summary>
@@ -133,13 +138,9 @@ namespace Azure.AI.Personalizer
             _isLocalInference = isLocalInference;
             if (isLocalInference)
             {
-                //Intialize liveModel and RlNetprocessor
                 validateAndAssignSampleRate(subsampleRate);
-                //Intialize liveModel and Rankprocessor
-                Configuration configuration = GetConfigurationForLiveModel("apiKey", apiKey);
-                LiveModel liveModel = new LiveModel(configuration);
-                liveModel.Init();
-                _rlNetProcessor = new RlNetProcessor(liveModel);
+                //lazy load Rankprocessor
+                _rankProcessor = new Lazy<RankProcessor>(() => GetConfigurationForLiveModel(_credentialType));
             }
         }
 
@@ -174,7 +175,8 @@ namespace Azure.AI.Personalizer
             {
                 if (_isLocalInference)
                 {
-                    return _rlNetProcessor.Rank(options);
+                    validateAndUpdateLiveModelConfig();
+                    return _rankProcessor.Value.Rank(options);
                 }
                 else
                 {
@@ -224,7 +226,8 @@ namespace Azure.AI.Personalizer
             {
                 if (_isLocalInference)
                 {
-                    return _rlNetProcessor.Rank(options);
+                    validateAndUpdateLiveModelConfig();
+                    return _rankProcessor.Value.Rank(options);
                 }
                 else
                 {
@@ -274,7 +277,8 @@ namespace Azure.AI.Personalizer
             {
                 if (_isLocalInference)
                 {
-                    return _rlNetProcessor.Rank(options);
+                    validateAndUpdateLiveModelConfig();
+                    return _rankProcessor.Value.Rank(options);
                 }
                 else
                 {
@@ -331,7 +335,8 @@ namespace Azure.AI.Personalizer
             {
                 if (_isLocalInference)
                 {
-                    return _rlNetProcessor.Rank(options);
+                    validateAndUpdateLiveModelConfig();
+                    return _rankProcessor.Value.Rank(options);
                 }
                 else
                 {
@@ -605,34 +610,59 @@ namespace Azure.AI.Personalizer
             }
         }
 
-        /// <summary> Gets the configuration details for the live model to use </summary>
-        internal Configuration GetConfigurationForLiveModel(string authType, string authValue)
+        /// <summary> Gets the rank process initiated with live model to use </summary>
+        internal RankProcessor GetConfigurationForLiveModel(string authType)
         {
-            _personalizerServiceProperties = ServiceConfigurationRestClient.Get();
-            _personalizerPolicy = PolicyRestClient.Get();
+            liveModelLastRefresh = DateTimeOffset.UtcNow;
             Configuration config = new Configuration();
             // set up the model
             if (authType == "apiKey")
             {
-                config["http.api.key"] = authValue;
+                config["http.api.key"] = _azureKeyCredential.Key;
             }
             else
             {
-                //ToDo: TASK 13057958 Working on changes to support token authentication in RLClient
-                //config["http.token.key"] = authValue;
+                var tokenRequestContext = new TokenRequestContext(scopes);
+                CancellationToken cancellationToken = default;
+                AccessToken token = _tokenCredential.GetToken(tokenRequestContext, cancellationToken);
+                config["http.api.key"] = "Bearer " + token.Token;
+                config["HTTP_API_HEADER_KEY_NAME"] = "Authorization";
+                tokenExpiry = token.ExpiresOn;
             }
-            config["interaction.http.api.host"] = stringEndpoint + "personalizer/v1.1-preview.3/logs/interactions";
-            config["observation.http.api.host"] = stringEndpoint + "personalizer/v1.1-preview.3/logs/observations";
-            config["interaction.subsample.rate"] = Convert.ToString(subsampleRate, CultureInfo.InvariantCulture);
-            config["observation.subsample.rate"] = Convert.ToString(subsampleRate, CultureInfo.InvariantCulture);
-            //ToDo: TASK 13057958 Working on changes to support model api in RL.Net
-            config["model.blob.uri"] = stringEndpoint + "personalizer/v1.1-preview.3/model";
-            config["vw.commandline"] = _personalizerPolicy.Arguments;
+            _personalizerServiceProperties = ServiceConfigurationRestClient.Get();
+            _personalizerPolicy = PolicyRestClient.Get();
+            //interactions & observations
+            config["interaction.http.api.host"] = stringEndpoint + "personalizer/v1.1-preview.2/logs/interactions";
+            config["observation.http.api.host"] = stringEndpoint + "personalizer/v1.1-preview.2/logs/observations";
+            config["interaction.sender.implementation"] = "INTERACTION_HTTP_API_SENDER";
+            config["observation.sender.implementation"] = "OBSERVATION_HTTP_API_SENDER";
+            config["interaction.subsample.rate"] = Convert.ToString(this.subsampleRate, CultureInfo.InvariantCulture);
+            config["observation.subsample.rate"] = Convert.ToString(this.subsampleRate, CultureInfo.InvariantCulture);
+            //model
+            config["model.blob.uri"] = stringEndpoint + "personalizer/v1.1-preview.1/model";
+            config["model.source"] = "HTTP_MODEL_DATA";
+
+            config["model.vw.initial_command_line"] = _personalizerPolicy.Arguments;
             config["protocol.version"] = "2";
             config["initial_exploration.epsilon"] = Convert.ToString(_personalizerServiceProperties.ExplorationPercentage, CultureInfo.InvariantCulture);
             config["rank.learning.mode"] = Convert.ToString(_personalizerServiceProperties.LearningMode, CultureInfo.InvariantCulture);
-            //return the config model
-            return config;
+
+            LiveModel liveModel = new LiveModel(config);
+            liveModel.Init();
+            return new RankProcessor(liveModel);
+        }
+
+        /// <summary> Update the config details periodically based on liveModelRefreshTimeInMinutes or when bearer token is expired </summary>
+        internal void validateAndUpdateLiveModelConfig()
+        {
+            if ((_credentialType == "Token" &&
+                DateTimeOffset.Compare(tokenExpiry, DateTimeOffset.MinValue) != 0 &&
+                DateTimeOffset.Compare(tokenExpiry, DateTimeOffset.UtcNow) < 0) ||
+                (DateTimeOffset.Compare(liveModelLastRefresh, DateTimeOffset.MinValue) != 0 &&
+                DateTimeOffset.Compare(liveModelLastRefresh.AddMinutes(liveModelRefreshTimeInMinutes), DateTimeOffset.UtcNow) < 0))
+            {
+                _rankProcessor = new Lazy<RankProcessor>(() => GetConfigurationForLiveModel(_credentialType));
+            }
         }
 
         /// <summary> validate SubsampleRate input from user and throw exception if not in range </summary>
