@@ -16,14 +16,13 @@ namespace Azure.AI.Personalizer
     ///<see href="https://docs.microsoft.com/azure/cognitive-services/personalizer/what-is-personalizer"/>
     public class PersonalizerClient
     {
-        private readonly ClientDiagnostics _clientDiagnostics;
-        private readonly HttpPipeline _pipeline;
-        private readonly bool _isLocalInference;
+        private readonly ClientDiagnostics clientDiagnostics;
+        private readonly HttpPipeline pipeline;
+        private readonly bool isLocalInference;
         private string stringEndpoint;
-        private AzureKeyCredential _azureKeyCredential;
-        private TokenCredential _tokenCredential;
+        private AzureKeyCredential azureKeyCredential;
+        private TokenCredential tokenCredential;
         private int liveModelRefreshTimeInMinutes = 15;
-        private string _credentialType;
         private DateTimeOffset tokenExpiry;
         private DateTimeOffset liveModelLastRefresh;
         private string[] scopes = { "https://cognitiveservices.azure.com/.default" };
@@ -38,8 +37,8 @@ namespace Azure.AI.Personalizer
         internal MultiSlotEventsRestClient MultiSlotEventsRestClient { get; set; }
         internal ServiceConfigurationRestClient ServiceConfigurationRestClient { get; set; }
         internal PolicyRestClient PolicyRestClient { get; set; }
-        internal PersonalizerServiceProperties _personalizerServiceProperties { get; set; }
-        internal PersonalizerPolicy _personalizerPolicy { get; set; }
+        internal PersonalizerServiceProperties personalizerServiceProperties { get; set; }
+        internal PersonalizerPolicy personalizerPolicy { get; set; }
 
         /// <summary> Initializes a new instance of Personalizer Client for mocking. </summary>
         protected PersonalizerClient()
@@ -62,17 +61,16 @@ namespace Azure.AI.Personalizer
             }
 
             options ??= new PersonalizerClientOptions();
-            _clientDiagnostics = new ClientDiagnostics(options);
-            _pipeline = HttpPipelineBuilder.Build(options, new BearerTokenAuthenticationPolicy(credential, scopes));
+            clientDiagnostics = new ClientDiagnostics(options);
+            pipeline = HttpPipelineBuilder.Build(options, new BearerTokenAuthenticationPolicy(credential, scopes));
             stringEndpoint = endpoint.AbsoluteUri;
-            RankRestClient = new RankRestClient(_clientDiagnostics, _pipeline, stringEndpoint);
-            EventsRestClient = new EventsRestClient(_clientDiagnostics, _pipeline, stringEndpoint);
-            MultiSlotRestClient = new MultiSlotRestClient(_clientDiagnostics, _pipeline, stringEndpoint);
-            MultiSlotEventsRestClient = new MultiSlotEventsRestClient(_clientDiagnostics, _pipeline, stringEndpoint);
-            ServiceConfigurationRestClient = new ServiceConfigurationRestClient(_clientDiagnostics, _pipeline, stringEndpoint);
-            PolicyRestClient = new PolicyRestClient(_clientDiagnostics, _pipeline, stringEndpoint);
-            _credentialType = "Token";
-            _tokenCredential = credential;
+            RankRestClient = new RankRestClient(clientDiagnostics, pipeline, stringEndpoint);
+            EventsRestClient = new EventsRestClient(clientDiagnostics, pipeline, stringEndpoint);
+            MultiSlotRestClient = new MultiSlotRestClient(clientDiagnostics, pipeline, stringEndpoint);
+            MultiSlotEventsRestClient = new MultiSlotEventsRestClient(clientDiagnostics, pipeline, stringEndpoint);
+            ServiceConfigurationRestClient = new ServiceConfigurationRestClient(clientDiagnostics, pipeline, stringEndpoint);
+            PolicyRestClient = new PolicyRestClient(clientDiagnostics, pipeline, stringEndpoint);
+            tokenCredential = credential;
         }
 
         /// <summary> Initializes a new instance of PersonalizerClient. </summary>
@@ -84,12 +82,12 @@ namespace Azure.AI.Personalizer
         public PersonalizerClient(Uri endpoint, TokenCredential credential, bool isLocalInference, float subsampleRate = 1.0f, PersonalizerClientOptions options = null) :
             this(endpoint, credential, options)
         {
-            _isLocalInference = isLocalInference;
+            this.isLocalInference = isLocalInference;
             if (isLocalInference)
             {
                 validateAndAssignSampleRate(subsampleRate);
                 //lazy load Rankprocessor
-                _rankProcessor = new Lazy<RankProcessor>(() => GetConfigurationForLiveModel(_credentialType));
+                _rankProcessor = new Lazy<RankProcessor>(() => GetConfigurationForRankProcessor());
             }
         }
 
@@ -113,17 +111,16 @@ namespace Azure.AI.Personalizer
                 throw new ArgumentNullException(nameof(credential));
             }
             options ??= new PersonalizerClientOptions();
-            _clientDiagnostics = new ClientDiagnostics(options);
-            _pipeline = HttpPipelineBuilder.Build(options, new AzureKeyCredentialPolicy(credential, "Ocp-Apim-Subscription-Key"));
+            clientDiagnostics = new ClientDiagnostics(options);
+            pipeline = HttpPipelineBuilder.Build(options, new AzureKeyCredentialPolicy(credential, "Ocp-Apim-Subscription-Key"));
             stringEndpoint = endpoint.AbsoluteUri;
-            RankRestClient = new RankRestClient(_clientDiagnostics, _pipeline, stringEndpoint);
-            EventsRestClient = new EventsRestClient(_clientDiagnostics, _pipeline, stringEndpoint);
-            MultiSlotRestClient = new MultiSlotRestClient(_clientDiagnostics, _pipeline, stringEndpoint);
-            MultiSlotEventsRestClient = new MultiSlotEventsRestClient(_clientDiagnostics, _pipeline, stringEndpoint);
-            ServiceConfigurationRestClient = new ServiceConfigurationRestClient(_clientDiagnostics, _pipeline, stringEndpoint);
-            PolicyRestClient = new PolicyRestClient(_clientDiagnostics, _pipeline, stringEndpoint);
-            _credentialType = "apiKey";
-            _azureKeyCredential = credential;
+            RankRestClient = new RankRestClient(clientDiagnostics, pipeline, stringEndpoint);
+            EventsRestClient = new EventsRestClient(clientDiagnostics, pipeline, stringEndpoint);
+            MultiSlotRestClient = new MultiSlotRestClient(clientDiagnostics, pipeline, stringEndpoint);
+            MultiSlotEventsRestClient = new MultiSlotEventsRestClient(clientDiagnostics, pipeline, stringEndpoint);
+            ServiceConfigurationRestClient = new ServiceConfigurationRestClient(clientDiagnostics, pipeline, stringEndpoint);
+            PolicyRestClient = new PolicyRestClient(clientDiagnostics, pipeline, stringEndpoint);
+            azureKeyCredential = credential;
         }
 
         /// <summary> Initializes a new instance of PersonalizerClient. </summary>
@@ -135,12 +132,12 @@ namespace Azure.AI.Personalizer
         public PersonalizerClient(Uri endpoint, AzureKeyCredential credential, bool isLocalInference, float subsampleRate = 1.0f, PersonalizerClientOptions options = null) :
             this(endpoint, credential, options)
         {
-            _isLocalInference = isLocalInference;
+            this.isLocalInference = isLocalInference;
             if (isLocalInference)
             {
                 validateAndAssignSampleRate(subsampleRate);
                 //lazy load Rankprocessor
-                _rankProcessor = new Lazy<RankProcessor>(() => GetConfigurationForLiveModel(_credentialType));
+                _rankProcessor = new Lazy<RankProcessor>(() => GetConfigurationForRankProcessor());
             }
         }
 
@@ -156,12 +153,12 @@ namespace Azure.AI.Personalizer
         internal PersonalizerClient(ClientDiagnostics clientDiagnostics, HttpPipeline pipeline, Uri endpoint)
         {
             string stringEndpoint = endpoint.AbsoluteUri;
-            RankRestClient = new RankRestClient(_clientDiagnostics, _pipeline, stringEndpoint);
-            EventsRestClient = new EventsRestClient(_clientDiagnostics, _pipeline, stringEndpoint);
-            MultiSlotRestClient = new MultiSlotRestClient(_clientDiagnostics, _pipeline, stringEndpoint);
-            MultiSlotEventsRestClient = new MultiSlotEventsRestClient(_clientDiagnostics, _pipeline, stringEndpoint);
-            _clientDiagnostics = clientDiagnostics;
-            _pipeline = pipeline;
+            RankRestClient = new RankRestClient(clientDiagnostics, pipeline, stringEndpoint);
+            EventsRestClient = new EventsRestClient(clientDiagnostics, pipeline, stringEndpoint);
+            MultiSlotRestClient = new MultiSlotRestClient(clientDiagnostics, pipeline, stringEndpoint);
+            MultiSlotEventsRestClient = new MultiSlotEventsRestClient(clientDiagnostics, pipeline, stringEndpoint);
+            this.clientDiagnostics = clientDiagnostics;
+            this.pipeline = pipeline;
         }
 
         /// <summary> Submit a Personalizer rank request. Receives a context and a list of actions. Returns which of the provided actions should be used by your application, in rewardActionId. </summary>
@@ -169,11 +166,11 @@ namespace Azure.AI.Personalizer
         /// <param name="cancellationToken"> The cancellation token to use. </param>
         public virtual async Task<Response<PersonalizerRankResult>> RankAsync(PersonalizerRankOptions options, CancellationToken cancellationToken = default)
         {
-            using var scope = _clientDiagnostics.CreateScope("PersonalizerClient.Rank");
+            using var scope = clientDiagnostics.CreateScope("PersonalizerClient.Rank");
             scope.Start();
             try
             {
-                if (_isLocalInference)
+                if (isLocalInference)
                 {
                     validateAndUpdateLiveModelConfig();
                     return _rankProcessor.Value.Rank(options);
@@ -220,11 +217,11 @@ namespace Azure.AI.Personalizer
         /// <param name="cancellationToken"> The cancellation token to use. </param>
         public virtual Response<PersonalizerRankResult> Rank(PersonalizerRankOptions options, CancellationToken cancellationToken = default)
         {
-            using var scope = _clientDiagnostics.CreateScope("PersonalizerClient.Rank");
+            using var scope = clientDiagnostics.CreateScope("PersonalizerClient.Rank");
             scope.Start();
             try
             {
-                if (_isLocalInference)
+                if (isLocalInference)
                 {
                     validateAndUpdateLiveModelConfig();
                     return _rankProcessor.Value.Rank(options);
@@ -271,11 +268,11 @@ namespace Azure.AI.Personalizer
         /// <param name="cancellationToken"> The cancellation token to use. </param>
         public virtual async Task<Response<PersonalizerMultiSlotRankResult>> RankMultiSlotAsync(PersonalizerRankMultiSlotOptions options, CancellationToken cancellationToken = default)
         {
-            using var scope = _clientDiagnostics.CreateScope("PersonalizerClient.RankMultiSlot");
+            using var scope = clientDiagnostics.CreateScope("PersonalizerClient.RankMultiSlot");
             scope.Start();
             try
             {
-                if (_isLocalInference)
+                if (isLocalInference)
                 {
                     validateAndUpdateLiveModelConfig();
                     return _rankProcessor.Value.Rank(options);
@@ -329,11 +326,11 @@ namespace Azure.AI.Personalizer
         /// <param name="cancellationToken"> The cancellation token to use. </param>
         public virtual Response<PersonalizerMultiSlotRankResult> RankMultiSlot(PersonalizerRankMultiSlotOptions options, CancellationToken cancellationToken = default)
         {
-            using var scope = _clientDiagnostics.CreateScope("PersonalizerClient.RankMultiSlot");
+            using var scope = clientDiagnostics.CreateScope("PersonalizerClient.RankMultiSlot");
             scope.Start();
             try
             {
-                if (_isLocalInference)
+                if (isLocalInference)
                 {
                     validateAndUpdateLiveModelConfig();
                     return _rankProcessor.Value.Rank(options);
@@ -388,7 +385,7 @@ namespace Azure.AI.Personalizer
         /// <param name="cancellationToken"> The cancellation token to use. </param>
         public virtual async Task<Response> RewardAsync(string eventId, float reward, CancellationToken cancellationToken = default)
         {
-            using var scope = _clientDiagnostics.CreateScope("PersonalizerClient.Reward");
+            using var scope = clientDiagnostics.CreateScope("PersonalizerClient.Reward");
             scope.Start();
             try
             {
@@ -415,7 +412,7 @@ namespace Azure.AI.Personalizer
         /// <param name="cancellationToken"> The cancellation token to use. </param>
         public virtual Response Reward(string eventId, float reward, CancellationToken cancellationToken = default)
         {
-            using var scope = _clientDiagnostics.CreateScope("PersonalizerClient.Reward");
+            using var scope = clientDiagnostics.CreateScope("PersonalizerClient.Reward");
             scope.Start();
             try
             {
@@ -442,7 +439,7 @@ namespace Azure.AI.Personalizer
         /// <param name="cancellationToken"> The cancellation token to use. </param>
         public virtual async Task<Response> RewardMultiSlotAsync(string eventId, PersonalizerRewardMultiSlotOptions options, CancellationToken cancellationToken = default)
         {
-            using var scope = _clientDiagnostics.CreateScope("PersonalizerClient.RewardMultiSlot");
+            using var scope = clientDiagnostics.CreateScope("PersonalizerClient.RewardMultiSlot");
             scope.Start();
             try
             {
@@ -479,7 +476,7 @@ namespace Azure.AI.Personalizer
         /// <param name="cancellationToken"> The cancellation token to use. </param>
         public virtual Response RewardMultiSlot(string eventId, PersonalizerRewardMultiSlotOptions options, CancellationToken cancellationToken = default)
         {
-            using var scope = _clientDiagnostics.CreateScope("PersonalizerClient.RewardMultiSlot");
+            using var scope = clientDiagnostics.CreateScope("PersonalizerClient.RewardMultiSlot");
             scope.Start();
             try
             {
@@ -515,7 +512,7 @@ namespace Azure.AI.Personalizer
         /// <param name="cancellationToken"> The cancellation token to use. </param>
         public virtual async Task<Response> ActivateAsync(string eventId, CancellationToken cancellationToken = default)
         {
-            using var scope = _clientDiagnostics.CreateScope("PersonalizerClient.Activate");
+            using var scope = clientDiagnostics.CreateScope("PersonalizerClient.Activate");
             scope.Start();
             try
             {
@@ -540,7 +537,7 @@ namespace Azure.AI.Personalizer
         /// <param name="cancellationToken"> The cancellation token to use. </param>
         public virtual Response Activate(string eventId, CancellationToken cancellationToken = default)
         {
-            using var scope = _clientDiagnostics.CreateScope("PersonalizerClient.Activate");
+            using var scope = clientDiagnostics.CreateScope("PersonalizerClient.Activate");
             scope.Start();
             try
             {
@@ -565,7 +562,7 @@ namespace Azure.AI.Personalizer
         /// <param name="cancellationToken"> The cancellation token to use. </param>
         public virtual async Task<Response> ActivateMultiSlotAsync(string eventId, CancellationToken cancellationToken = default)
         {
-            using var scope = _clientDiagnostics.CreateScope("PersonalizerClient.ActivateMultiSlot");
+            using var scope = clientDiagnostics.CreateScope("PersonalizerClient.ActivateMultiSlot");
             scope.Start();
             try
             {
@@ -590,7 +587,7 @@ namespace Azure.AI.Personalizer
         /// <param name="cancellationToken"> The cancellation token to use. </param>
         public virtual Response ActivateMultiSlot(string eventId, CancellationToken cancellationToken = default)
         {
-            using var scope = _clientDiagnostics.CreateScope("PersonalizerClient.ActivateMultiSlot");
+            using var scope = clientDiagnostics.CreateScope("PersonalizerClient.ActivateMultiSlot");
             scope.Start();
             try
             {
@@ -611,26 +608,24 @@ namespace Azure.AI.Personalizer
         }
 
         /// <summary> Gets the rank process initiated with live model to use </summary>
-        internal RankProcessor GetConfigurationForLiveModel(string authType)
+        internal RankProcessor GetConfigurationForRankProcessor(CancellationToken cancellationToken = default)
         {
-            liveModelLastRefresh = DateTimeOffset.UtcNow;
             Configuration config = new Configuration();
             // set up the model
-            if (authType == "apiKey")
+            if (azureKeyCredential != null)
             {
-                config["http.api.key"] = _azureKeyCredential.Key;
+                config["http.api.key"] = azureKeyCredential.Key;
             }
             else
             {
                 var tokenRequestContext = new TokenRequestContext(scopes);
-                CancellationToken cancellationToken = default;
-                AccessToken token = _tokenCredential.GetToken(tokenRequestContext, cancellationToken);
+                AccessToken token = tokenCredential.GetToken(tokenRequestContext, cancellationToken);
                 config["http.api.key"] = "Bearer " + token.Token;
-                config["HTTP_API_HEADER_KEY_NAME"] = "Authorization";
+                config["http.api.header.key.name"] = "Authorization";
                 tokenExpiry = token.ExpiresOn;
             }
-            _personalizerServiceProperties = ServiceConfigurationRestClient.Get();
-            _personalizerPolicy = PolicyRestClient.Get();
+            personalizerServiceProperties = ServiceConfigurationRestClient.Get(cancellationToken);
+            personalizerPolicy = PolicyRestClient.Get(cancellationToken);
             //interactions & observations
             config["interaction.http.api.host"] = stringEndpoint + "personalizer/v1.1-preview.2/logs/interactions";
             config["observation.http.api.host"] = stringEndpoint + "personalizer/v1.1-preview.2/logs/observations";
@@ -642,26 +637,27 @@ namespace Azure.AI.Personalizer
             config["model.blob.uri"] = stringEndpoint + "personalizer/v1.1-preview.1/model";
             config["model.source"] = "HTTP_MODEL_DATA";
 
-            config["model.vw.initial_command_line"] = _personalizerPolicy.Arguments;
+            config["model.vw.initial_command_line"] = personalizerPolicy.Arguments;
             config["protocol.version"] = "2";
-            config["initial_exploration.epsilon"] = Convert.ToString(_personalizerServiceProperties.ExplorationPercentage, CultureInfo.InvariantCulture);
-            config["rank.learning.mode"] = Convert.ToString(_personalizerServiceProperties.LearningMode, CultureInfo.InvariantCulture);
+            config["initial_exploration.epsilon"] = Convert.ToString(personalizerServiceProperties.ExplorationPercentage, CultureInfo.InvariantCulture);
+            config["rank.learning.mode"] = Convert.ToString(personalizerServiceProperties.LearningMode, CultureInfo.InvariantCulture);
 
             LiveModel liveModel = new LiveModel(config);
             liveModel.Init();
+            liveModelLastRefresh = DateTimeOffset.UtcNow;
             return new RankProcessor(liveModel);
         }
 
         /// <summary> Update the config details periodically based on liveModelRefreshTimeInMinutes or when bearer token is expired </summary>
         internal void validateAndUpdateLiveModelConfig()
         {
-            if ((_credentialType == "Token" &&
+            if ((tokenCredential != null &&
                 DateTimeOffset.Compare(tokenExpiry, DateTimeOffset.MinValue) != 0 &&
-                DateTimeOffset.Compare(tokenExpiry, DateTimeOffset.UtcNow) < 0) ||
+                DateTimeOffset.Compare(tokenExpiry, DateTimeOffset.UtcNow) <= 0) ||
                 (DateTimeOffset.Compare(liveModelLastRefresh, DateTimeOffset.MinValue) != 0 &&
                 DateTimeOffset.Compare(liveModelLastRefresh.AddMinutes(liveModelRefreshTimeInMinutes), DateTimeOffset.UtcNow) < 0))
             {
-                _rankProcessor = new Lazy<RankProcessor>(() => GetConfigurationForLiveModel(_credentialType));
+                _rankProcessor = new Lazy<RankProcessor>(() => GetConfigurationForRankProcessor());
             }
         }
 
