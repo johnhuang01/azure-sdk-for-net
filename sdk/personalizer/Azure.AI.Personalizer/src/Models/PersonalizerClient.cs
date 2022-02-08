@@ -605,7 +605,7 @@ namespace Azure.AI.Personalizer
             }
         }
 
-        /// <summary> Gets the rank process initiated with live model to use </summary>
+        /// <summary> Gets the rank processor initiated with live model to use </summary>
         private RankProcessor GetConfigurationForRankProcessor(CancellationToken cancellationToken = default)
         {
             Configuration config = new Configuration();
@@ -643,7 +643,6 @@ namespace Azure.AI.Personalizer
             config["protocol.version"] = "2";
             config["initial_exploration.epsilon"] = Convert.ToString(personalizerServiceProperties.ExplorationPercentage, CultureInfo.InvariantCulture);
             config["rank.learning.mode"] = Convert.ToString(personalizerServiceProperties.LearningMode, CultureInfo.InvariantCulture);
-
             LiveModel liveModel = new LiveModel(config);
             liveModel.Init();
             liveModelLastRefresh = DateTimeOffset.UtcNow;
