@@ -55,6 +55,19 @@ namespace Azure.AI.Personalizer
         [System.Text.Json.Serialization.JsonIgnoreAttribute(Condition=System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public string Set { get { throw null; } set { } }
     }
+    public partial class EventResponse : Azure.Response
+    {
+        public EventResponse(int status, string reasonPhrase = null) { }
+        public override string ClientRequestId { get { throw null; } set { } }
+        public override System.IO.Stream ContentStream { get { throw null; } set { } }
+        public override string ReasonPhrase { get { throw null; } }
+        public override int Status { get { throw null; } }
+        protected override bool ContainsHeader(string name) { throw null; }
+        public override void Dispose() { }
+        protected override System.Collections.Generic.IEnumerable<Azure.Core.HttpHeader> EnumerateHeaders() { throw null; }
+        protected override bool TryGetHeader(string name, out string value) { throw null; }
+        protected override bool TryGetHeaderValues(string name, out System.Collections.Generic.IEnumerable<string> values) { throw null; }
+    }
     public partial class PersonalizerAdministrationClient
     {
         protected PersonalizerAdministrationClient() { }
@@ -74,14 +87,16 @@ namespace Azure.AI.Personalizer
         public virtual Azure.AsyncPageable<Azure.AI.Personalizer.PersonalizerEvaluation> GetPersonalizerEvaluationsAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) { throw null; }
         public virtual Azure.Response<Azure.AI.Personalizer.PersonalizerLogProperties> GetPersonalizerLogProperties(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) { throw null; }
         public virtual System.Threading.Tasks.Task<Azure.Response<Azure.AI.Personalizer.PersonalizerLogProperties>> GetPersonalizerLogPropertiesAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) { throw null; }
-        public virtual Azure.Response<System.IO.Stream> GetPersonalizerModel(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) { throw null; }
-        public virtual System.Threading.Tasks.Task<Azure.Response<System.IO.Stream>> GetPersonalizerModelAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) { throw null; }
+        public virtual Azure.Response<System.IO.Stream> GetPersonalizerModel(bool isSigned = false, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) { throw null; }
+        public virtual System.Threading.Tasks.Task<Azure.Response<System.IO.Stream>> GetPersonalizerModelAsync(bool isSigned = false, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) { throw null; }
         public virtual Azure.Response<Azure.AI.Personalizer.PersonalizerModelProperties> GetPersonalizerModelProperties(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) { throw null; }
         public virtual System.Threading.Tasks.Task<Azure.Response<Azure.AI.Personalizer.PersonalizerModelProperties>> GetPersonalizerModelPropertiesAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) { throw null; }
         public virtual Azure.Response<Azure.AI.Personalizer.PersonalizerPolicy> GetPersonalizerPolicy(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) { throw null; }
         public virtual System.Threading.Tasks.Task<Azure.Response<Azure.AI.Personalizer.PersonalizerPolicy>> GetPersonalizerPolicyAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) { throw null; }
         public virtual Azure.Response<Azure.AI.Personalizer.PersonalizerServiceProperties> GetPersonalizerProperties(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) { throw null; }
         public virtual System.Threading.Tasks.Task<Azure.Response<Azure.AI.Personalizer.PersonalizerServiceProperties>> GetPersonalizerPropertiesAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) { throw null; }
+        public virtual Azure.Response ImportPersonalizerModel(System.IO.Stream modelStream, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) { throw null; }
+        public virtual System.Threading.Tasks.Task<Azure.Response> ImportPersonalizerModelAsync(System.IO.Stream modelStream, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) { throw null; }
         public virtual Azure.Response ResetPersonalizerModel(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) { throw null; }
         public virtual System.Threading.Tasks.Task<Azure.Response> ResetPersonalizerModelAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) { throw null; }
         public virtual Azure.Response<Azure.AI.Personalizer.PersonalizerPolicy> ResetPersonalizerPolicy(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) { throw null; }
