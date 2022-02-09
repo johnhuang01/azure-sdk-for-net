@@ -1,7 +1,7 @@
 {
     "Entries": [
         {
-            "RequestUri": "https://singleslotrecordsdktests.cognitiveservices.azure.com/personalizer/v1.1-preview.1/configurations/service",
+            "RequestUri": "https://singleslotrecordsdktests.cognitiveservices.azure.com/personalizer/v1.1-preview.3/configurations/service",
             "RequestMethod": "GET",
             "RequestHeaders": {
                 "Accept": "application/json",
@@ -46,7 +46,7 @@
             }
         },
         {
-            "RequestUri": "https://singleslotrecordsdktests.cognitiveservices.azure.com/personalizer/v1.1-preview.1/configurations/policy",
+            "RequestUri": "https://singleslotrecordsdktests.cognitiveservices.azure.com/personalizer/v1.1-preview.3/configurations/policy",
             "RequestMethod": "GET",
             "RequestHeaders": {
                 "Accept": "application/json",

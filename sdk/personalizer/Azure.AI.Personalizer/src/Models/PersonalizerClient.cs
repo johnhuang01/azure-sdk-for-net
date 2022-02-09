@@ -28,7 +28,7 @@ namespace Azure.AI.Personalizer
         private string[] scopes = { "https://cognitiveservices.azure.com/.default" };
         private float subsampleRate = 1.0f;
 
-        private Lazy<RankProcessor> rankProcessor;
+        private Lazy<RlNetProcessor> rlNetProcessor;
         internal RankRestClient RankRestClient { get; set; }
         internal EventsRestClient EventsRestClient { get; set; }
         internal MultiSlotRestClient MultiSlotRestClient { get; set; }
@@ -85,7 +85,7 @@ namespace Azure.AI.Personalizer
             {
                 validateAndAssignSampleRate(subsampleRate);
                 //lazy load Rankprocessor
-                rankProcessor = new Lazy<RankProcessor>(() => GetConfigurationForRankProcessor());
+                rlNetProcessor = new Lazy<RlNetProcessor>(() => GetConfigurationForRankProcessor());
             }
         }
 
@@ -135,7 +135,7 @@ namespace Azure.AI.Personalizer
             {
                 validateAndAssignSampleRate(subsampleRate);
                 //lazy load Rankprocessor
-                rankProcessor = new Lazy<RankProcessor>(() => GetConfigurationForRankProcessor());
+                rlNetProcessor = new Lazy<RlNetProcessor>(() => GetConfigurationForRankProcessor());
             }
         }
 
@@ -171,7 +171,7 @@ namespace Azure.AI.Personalizer
                 if (isLocalInference)
                 {
                     validateAndUpdateLiveModelConfig();
-                    return rankProcessor.Value.Rank(options);
+                    return rlNetProcessor.Value.Rank(options);
                 }
                 else
                 {
@@ -222,7 +222,7 @@ namespace Azure.AI.Personalizer
                 if (isLocalInference)
                 {
                     validateAndUpdateLiveModelConfig();
-                    return rankProcessor.Value.Rank(options);
+                    return rlNetProcessor.Value.Rank(options);
                 }
                 else
                 {
@@ -273,7 +273,7 @@ namespace Azure.AI.Personalizer
                 if (isLocalInference)
                 {
                     validateAndUpdateLiveModelConfig();
-                    return rankProcessor.Value.Rank(options);
+                    return rlNetProcessor.Value.Rank(options);
                 }
                 else
                 {
@@ -331,7 +331,7 @@ namespace Azure.AI.Personalizer
                 if (isLocalInference)
                 {
                     validateAndUpdateLiveModelConfig();
-                    return rankProcessor.Value.Rank(options);
+                    return rlNetProcessor.Value.Rank(options);
                 }
                 else
                 {
@@ -388,9 +388,10 @@ namespace Azure.AI.Personalizer
             try
             {
                 PersonalizerRewardOptions rewardOptions = new PersonalizerRewardOptions(reward);
-                if (_isLocalInference)
+                if (isLocalInference)
                 {
-                    return _rlNetProcessor.Reward(eventId, reward);
+                    validateAndUpdateLiveModelConfig();
+                    return rlNetProcessor.Value.Reward(eventId, reward);
                 }
                 else
                 {
@@ -414,9 +415,10 @@ namespace Azure.AI.Personalizer
             scope.Start();
             try
             {
-                if (_isLocalInference)
+                if (isLocalInference)
                 {
-                    return _rlNetProcessor.Reward(eventId, reward);
+                    validateAndUpdateLiveModelConfig();
+                    return rlNetProcessor.Value.Reward(eventId, reward);
                 }
                 else
                 {
@@ -441,9 +443,10 @@ namespace Azure.AI.Personalizer
             scope.Start();
             try
             {
-                if (_isLocalInference)
+                if (isLocalInference)
                 {
-                    return _rlNetProcessor.RewardMultiSlot(eventId, options.Reward);
+                    validateAndUpdateLiveModelConfig();
+                    return rlNetProcessor.Value.RewardMultiSlot(eventId, options.Reward);
                 }
                 else
                 {
@@ -478,9 +481,10 @@ namespace Azure.AI.Personalizer
             scope.Start();
             try
             {
-                if (_isLocalInference)
+                if (isLocalInference)
                 {
-                    return _rlNetProcessor.RewardMultiSlot(eventId, options.Reward);
+                    validateAndUpdateLiveModelConfig();
+                    return rlNetProcessor.Value.RewardMultiSlot(eventId, options.Reward);
                 }
                 else
                 {
@@ -514,9 +518,10 @@ namespace Azure.AI.Personalizer
             scope.Start();
             try
             {
-                if (_isLocalInference)
+                if (isLocalInference)
                 {
-                    return _rlNetProcessor.Activate(eventId);
+                    validateAndUpdateLiveModelConfig();
+                    return rlNetProcessor.Value.Activate(eventId);
                 }
                 else
                 {
@@ -539,9 +544,10 @@ namespace Azure.AI.Personalizer
             scope.Start();
             try
             {
-                if (_isLocalInference)
+                if (isLocalInference)
                 {
-                    return _rlNetProcessor.Activate(eventId);
+                    validateAndUpdateLiveModelConfig();
+                    return rlNetProcessor.Value.Activate(eventId);
                 }
                 else
                 {
@@ -564,9 +570,10 @@ namespace Azure.AI.Personalizer
             scope.Start();
             try
             {
-                if (_isLocalInference)
+                if (isLocalInference)
                 {
-                    return _rlNetProcessor.Activate(eventId);
+                    validateAndUpdateLiveModelConfig();
+                    return rlNetProcessor.Value.Activate(eventId);
                 }
                 else
                 {
@@ -589,9 +596,10 @@ namespace Azure.AI.Personalizer
             scope.Start();
             try
             {
-                if (_isLocalInference)
+                if (isLocalInference)
                 {
-                    return _rlNetProcessor.Activate(eventId);
+                    validateAndUpdateLiveModelConfig();
+                    return rlNetProcessor.Value.Activate(eventId);
                 }
                 else
                 {
@@ -606,7 +614,7 @@ namespace Azure.AI.Personalizer
         }
 
         /// <summary> Gets the rank processor initiated with live model to use </summary>
-        private RankProcessor GetConfigurationForRankProcessor(CancellationToken cancellationToken = default)
+        private RlNetProcessor GetConfigurationForRankProcessor(CancellationToken cancellationToken = default)
         {
             Configuration config = new Configuration();
             // set up the model
@@ -637,7 +645,7 @@ namespace Azure.AI.Personalizer
             config["observation.subsample.rate"] = Convert.ToString(this.subsampleRate, CultureInfo.InvariantCulture);
             //model
             config["model.blob.uri"] = stringEndpoint + "personalizer/v1.1-preview.1/model";
-            config["model.source"] = "HTTP_MODEL_DATA";
+            config["model.source"] = "AZURE_STORAGE_BLOB";
 
             config["model.vw.initial_command_line"] = personalizerPolicy.Arguments;
             config["protocol.version"] = "2";
@@ -646,7 +654,7 @@ namespace Azure.AI.Personalizer
             LiveModel liveModel = new LiveModel(config);
             liveModel.Init();
             liveModelLastRefresh = DateTimeOffset.UtcNow;
-            return new RankProcessor(liveModel);
+            return new RlNetProcessor(liveModel);
         }
 
         /// <summary> Update the config details periodically based on liveModelRefreshTimeInMinutes or when bearer token is expired </summary>
@@ -658,7 +666,7 @@ namespace Azure.AI.Personalizer
                 (DateTimeOffset.Compare(liveModelLastRefresh, DateTimeOffset.MinValue) != 0 &&
                 DateTimeOffset.Compare(liveModelLastRefresh.AddMinutes(liveModelRefreshTimeInMinutes), DateTimeOffset.UtcNow) < 0))
             {
-                rankProcessor = new Lazy<RankProcessor>(() => GetConfigurationForRankProcessor());
+                rlNetProcessor = new Lazy<RlNetProcessor>(() => GetConfigurationForRankProcessor());
             }
         }
 
