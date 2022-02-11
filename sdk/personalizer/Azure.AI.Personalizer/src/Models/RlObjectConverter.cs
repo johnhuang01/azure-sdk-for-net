@@ -26,7 +26,7 @@ namespace Azure.AI.Personalizer
         /// </summary>
         public static PersonalizerRankResult GenerateRankResult(List<PersonalizerRankableAction> originalActions,
             List<PersonalizerRankableAction> rankableActions, List<PersonalizerRankableAction> excludedActions,
-            RankingResponse rankingResponse, string eventId)
+            RankingResponseWrapper rankingResponse, string eventId)
         {
             var rankedIndices = rankingResponse?.Select(actionProbability => ((int)actionProbability.ActionIndex + 1)).ToArray();
 
@@ -89,7 +89,7 @@ namespace Azure.AI.Personalizer
             return personalizerRankResult;
         }
 
-        public static PersonalizerMultiSlotRankResult GenerateMultiSlotRankResponse(IList<PersonalizerRankableAction> actions, MultiSlotResponseDetailed multiSlotResponse, string eventId)
+        public static PersonalizerMultiSlotRankResult GenerateMultiSlotRankResponse(IList<PersonalizerRankableAction> actions, MultiSlotResponseDetailedWrapper multiSlotResponse, string eventId)
         {
             Dictionary<long, string> actionIndexToActionId = actions
                 .Select((action, index) => new { action, index = (long)index })
