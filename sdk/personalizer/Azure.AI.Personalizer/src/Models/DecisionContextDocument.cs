@@ -11,15 +11,15 @@ namespace Azure.AI.Personalizer
     {
         /// <summary> Initializes a new instance of DecisionContextDocument. </summary>
         /// <param name="id"> Id of the decision context document </param>
-        /// <param name="json"> The json features </param>
+        /// <param name="actionJsons"> The json list of actions </param>
         /// <param name="slotId"> The slot Id </param>
-        /// <param name="slotJson"> The slot json features </param>
-        public DecisionContextDocument(string id, List<string> json, string slotId, List<string> slotJson)
+        /// <param name="slotJsons"> The json list of slots </param>
+        public DecisionContextDocument(string id, List<string> actionJsons, string slotId, List<string> slotJsons)
         {
-            ID = id;
-            JSON = json;
+            Id = id;
+            ActionJsons = actionJsons;
             SlotId = slotId;
-            SlotJson = slotJson;
+            SlotJsons = slotJsons;
         }
 
         /// <summary>
@@ -27,60 +27,36 @@ namespace Azure.AI.Personalizer
         /// </summary>
         [JsonPropertyName("_tag")]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-        public string ID
-        {
-            get { return this?.Marginal?.ID; }
-            set
-            {
-                this.Marginal = value == null ? null : new DecisionContextDocumentId
-                {
-                    ID = value
-                };
-            }
-        }
+        public string Id { get; }
 
         /// <summary>
-        /// Provide feature for marginal feature based on document id.
-        /// </summary>
-        [JsonPropertyName("i")]
-        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-        public DecisionContextDocumentId Marginal { get; set; }
-
-        /// <summary>
-        /// Provide source set feature.
-        /// </summary>
-        [JsonPropertyName("s")]
-        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-        public DecisionContextDocumentSource Source { get; set; }
-
-        /// <summary>
-        /// Generic json features.
+        /// A list of generic action jsons.
         /// </summary>
         [JsonPropertyName("j")]
         [JsonConverter(typeof(JsonRawStringListConverter))]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-        public List<string> JSON { get; }
+        public List<string> ActionJsons { get; }
 
         /// <summary>
         /// Keep as float[] arrays to improve marshalling speed.
         /// </summary>
         [JsonPropertyName("f")]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-        public Dictionary<string, float[]> FloatFeatures { get; }
+        public Dictionary<string, float[]> Features { get; }
 
         /// <summary>
         /// Slot ID.
         /// </summary>
         [JsonPropertyName("_id")]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-        public string SlotId { get; set; }
+        public string SlotId { get; }
 
         /// <summary>
-        /// Generic slot json features.
+        /// A list of generic slot jsons.
         /// </summary>
         [JsonPropertyName("sj")]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         [JsonConverter(typeof(JsonRawStringListConverter))]
-        public List<string> SlotJson { get; set; }
+        public List<string> SlotJsons { get; }
     }
 }
