@@ -90,10 +90,21 @@ namespace Azure.AI.Personalizer.Tests
             Sanitizer = new PersonalizerRecordedTestSanitizer();
         }
 
+        public PersonalizerTestBase(bool isAsync, RecordedTestMode mode) : base(isAsync, mode)
+        {
+            // TODO: Compare bodies again when https://github.com/Azure/azure-sdk-for-net/issues/22219 is resolved.
+            Matcher = new RecordMatcher(compareBodies: false);
+            Sanitizer = new PersonalizerRecordedTestSanitizer();
+        }
+
         protected async Task<PersonalizerClient> GetPersonalizerClientAsync(bool isSingleSlot = false, bool isLocalInference = false, float subsampleRate = 1.0f)
         {
-            string endpoint = isSingleSlot ? TestEnvironment.SingleSlotEndpoint : TestEnvironment.MultiSlotEndpoint;
-            string apiKey = isSingleSlot ? TestEnvironment.SingleSlotApiKey : TestEnvironment.MultiSlotApiKey;
+            //string endpoint = isSingleSlot ? TestEnvironment.SingleSlotEndpoint : TestEnvironment.MultiSlotEndpoint;
+            //string apiKey = isSingleSlot ? TestEnvironment.SingleSlotApiKey : TestEnvironment.MultiSlotApiKey;
+
+            string endpoint = "https://thickclienttest.ppe.cognitiveservices.azure.com/";
+            string apiKey = "330c3eb9b6e2464ea521b1f7ff2e44a0";
+
             PersonalizerAdministrationClient adminClient = GetAdministrationClient(isSingleSlot);
             if (!isSingleSlot)
             {
@@ -104,7 +115,7 @@ namespace Azure.AI.Personalizer.Tests
             PersonalizerClient personalizerClient = null;
             if (isLocalInference)
             {
-                if (Mode == RecordedTestMode.Playback)
+                if (Mode != RecordedTestMode.Playback)
                 {
                     RlNetProcessor rlNetProcessor = SetupRlNetProcessor();
 
@@ -126,8 +137,11 @@ namespace Azure.AI.Personalizer.Tests
 
         protected PersonalizerAdministrationClient GetAdministrationClient(bool isSingleSlot = false)
         {
-            string endpoint = isSingleSlot ? TestEnvironment.SingleSlotEndpoint : TestEnvironment.MultiSlotEndpoint;
-            string apiKey = isSingleSlot ? TestEnvironment.SingleSlotApiKey : TestEnvironment.MultiSlotApiKey;
+            //string endpoint = isSingleSlot ? TestEnvironment.SingleSlotEndpoint : TestEnvironment.MultiSlotEndpoint;
+            //string apiKey = isSingleSlot ? TestEnvironment.SingleSlotApiKey : TestEnvironment.MultiSlotApiKey;
+
+            string endpoint = "https://thickclienttest.ppe.cognitiveservices.azure.com/";
+            string apiKey = "330c3eb9b6e2464ea521b1f7ff2e44a0";
             var credential = new AzureKeyCredential(apiKey);
             var options = InstrumentClientOptions(new PersonalizerClientOptions());
             PersonalizerAdministrationClient personalizerAdministrationClient = new PersonalizerAdministrationClient(new Uri(endpoint), credential, options);

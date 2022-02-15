@@ -4,13 +4,14 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Azure.Core.TestFramework;
 using NUnit.Framework;
 
 namespace Azure.AI.Personalizer.Tests
 {
     public class RankTests : PersonalizerTestBase
     {
-        public RankTests(bool isAsync) : base(isAsync)
+        public RankTests(bool isAsync) : base(isAsync, RecordedTestMode.Live)
         {
         }
 
