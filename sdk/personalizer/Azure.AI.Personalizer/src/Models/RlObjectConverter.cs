@@ -41,7 +41,6 @@ namespace Azure.AI.Personalizer
         {
             // excluded actions are not passed into VW
             // rankedIndices[0] is the index of the VW chosen action (1 based index)
-            // ccb response that is converted into a cb response: the chosen action index is a field in the vw response.
             int chosenActionIndex = rankedIndices[0] - 1;
 
             // take care of actions that are excluded in their original positions
