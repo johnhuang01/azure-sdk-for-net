@@ -15,6 +15,16 @@ namespace Azure.AI.Personalizer
     {
         private bool isLocalInference;
         private float subsampleRate;
+        private const ServiceVersion LatestVersion = ServiceVersion.V1_1_preview_3;
+
+        /// <summary> The version of the service to use. </summary>
+        public enum ServiceVersion
+        {
+            /// <summary> Service version "v1.1-preview.3". </summary>
+            V1_1_preview_3 = 1,
+        }
+
+        internal string Version { get; }
 
         /// <summary> Initializes new instance of PersonalizerClientV1Preview3ClientOptions. </summary>
         public PersonalizerClientOptions(ServiceVersion version = LatestVersion, bool isLocalInference = false, float subsampleRate = 1)
