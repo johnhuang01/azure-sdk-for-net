@@ -76,7 +76,7 @@ namespace Azure.AI.Personalizer
             }).ToList();
 
             // setting RewardActionId to be the VW chosen action.
-            var personalizerRankResult = new PersonalizerRankResult(rankings, eventId, originalActions.ElementAt(chosenActionIndex)?.Id);
+            var personalizerRankResult = new PersonalizerRankResult(rankings, eventId, rankableActions.ElementAt(chosenActionIndex)?.Id);
 
             return personalizerRankResult;
         }

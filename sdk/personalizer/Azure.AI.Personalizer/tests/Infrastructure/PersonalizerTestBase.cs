@@ -15,7 +15,7 @@ namespace Azure.AI.Personalizer.Tests
     {
         public static bool IsTestTenant = false;
 
-        private class ActionProbabilityWrapperForTest : ActionProbabilityWrapper
+        internal class ActionProbabilityWrapperForTest : ActionProbabilityWrapper
         {
             private readonly long index;
             private readonly float prob;
@@ -30,7 +30,7 @@ namespace Azure.AI.Personalizer.Tests
                 this.prob = prob;
             }
         }
-        private class SlotRankingWrapperForTest : SlotRankingWrapper
+        internal class SlotRankingWrapperForTest : SlotRankingWrapper
         {
             private IEnumerable<ActionProbabilityWrapper> ranking;
             private readonly long actionIndex;
@@ -53,7 +53,7 @@ namespace Azure.AI.Personalizer.Tests
             }
         }
 
-        private class RankingResponseWrapperForTest : RankingResponseWrapper
+        internal class RankingResponseWrapperForTest : RankingResponseWrapper
         {
             private IEnumerable<ActionProbabilityWrapper> rank;
 
@@ -68,7 +68,7 @@ namespace Azure.AI.Personalizer.Tests
             }
         }
 
-        private class MultiSlotResponseWrapperForTest : MultiSlotResponseDetailedWrapper
+        internal class MultiSlotResponseWrapperForTest : MultiSlotResponseDetailedWrapper
         {
             private IEnumerable<SlotRankingWrapper> slotRank;
 
