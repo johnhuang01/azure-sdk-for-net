@@ -90,10 +90,22 @@ namespace Azure.AI.Personalizer.Tests
             Sanitizer = new PersonalizerRecordedTestSanitizer();
         }
 
+        public PersonalizerTestBase(bool isAsync, RecordedTestMode recordedTestMode) : base(isAsync, recordedTestMode)
+        {
+            // TODO: Compare bodies again when https://github.com/Azure/azure-sdk-for-net/issues/22219 is resolved.
+            Matcher = new RecordMatcher(compareBodies: false);
+            Sanitizer = new PersonalizerRecordedTestSanitizer();
+        }
+
         protected async Task<PersonalizerClient> GetPersonalizerClientAsync(bool isSingleSlot = false, bool isLocalInference = false, float subsampleRate = 1.0f)
         {
-            string endpoint = isSingleSlot ? TestEnvironment.SingleSlotEndpoint : TestEnvironment.MultiSlotEndpoint;
-            string apiKey = isSingleSlot ? TestEnvironment.SingleSlotApiKey : TestEnvironment.MultiSlotApiKey;
+            //string endpoint = "https://autoopte2etest2.ppe.cognitiveservices.azure.com/"; // isSingleSlot ? TestEnvironment.SingleSlotEndpoint : TestEnvironment.MultiSlotEndpoint;
+            string endpoint = "https://autoopte2etest1.ppe.cognitiveservices.azure.com/"; // multi-slot
+            //string endpoint = "https://sdktestmultislot.ppe.cognitiveservices.azure.com/";
+            //string endpoint = "https://localhost:5001/";
+            //string apiKey = "5690a97f690544698fe46a3297d5636c"; //single-slot // isSingleSlot ? TestEnvironment.SingleSlotApiKey : TestEnvironment.MultiSlotApiKey;
+            string apiKey = "e7d66714afdb49e6a15abcfe71471d31"; // multi-slot
+            //string apiKey = "fd3352b1f3c543a4ab843ba4fa3ff5b2";
             PersonalizerAdministrationClient adminClient = GetAdministrationClient(isSingleSlot);
             if (!isSingleSlot)
             {
@@ -126,8 +138,18 @@ namespace Azure.AI.Personalizer.Tests
 
         protected PersonalizerAdministrationClient GetAdministrationClient(bool isSingleSlot = false)
         {
-            string endpoint = isSingleSlot ? TestEnvironment.SingleSlotEndpoint : TestEnvironment.MultiSlotEndpoint;
-            string apiKey = isSingleSlot ? TestEnvironment.SingleSlotApiKey : TestEnvironment.MultiSlotApiKey;
+            //string endpoint = isSingleSlot ? TestEnvironment.SingleSlotEndpoint : TestEnvironment.MultiSlotEndpoint;
+            //string apiKey = isSingleSlot ? TestEnvironment.SingleSlotApiKey : TestEnvironment.MultiSlotApiKey;
+            //string endpoint = "https://autoopte2etest2.ppe.cognitiveservices.azure.com/";
+            // string endpoint = "https://localhost:5001/";
+            //string apiKey = "5690a97f690544698fe46a3297d5636c";
+
+            string endpoint = "https://autoopte2etest1.ppe.cognitiveservices.azure.com/"; // multi-slot
+            string apiKey = "e7d66714afdb49e6a15abcfe71471d31"; // multi-slot
+
+            //string endpoint = "https://sdktestmultislot.ppe.cognitiveservices.azure.com/";
+            //string apiKey = "fd3352b1f3c543a4ab843ba4fa3ff5b2";
+
             var credential = new AzureKeyCredential(apiKey);
             var options = InstrumentClientOptions(new PersonalizerClientOptions());
             PersonalizerAdministrationClient personalizerAdministrationClient = new PersonalizerAdministrationClient(new Uri(endpoint), credential, options);
@@ -139,11 +161,11 @@ namespace Azure.AI.Personalizer.Tests
         {
             PersonalizerServiceProperties properties = await adminClient.GetPersonalizerPropertiesAsync();
             properties.IsAutoOptimizationEnabled = false;
-            await adminClient.UpdatePersonalizerPropertiesAsync(properties);
-            await Delay(30000);
-            await adminClient.UpdatePersonalizerPolicyAsync(new PersonalizerPolicy("multiSlot", "--ccb_explore_adf --epsilon 0.2 --power_t 0 -l 0.001 --cb_type mtr -q ::"));
+            //await adminClient.UpdatePersonalizerPropertiesAsync(properties);
+            //await Delay(30000);
+            //await adminClient.UpdatePersonalizerPolicyAsync(new PersonalizerPolicy("multiSlot", "--ccb_explore_adf --epsilon 0.2 --power_t 0 -l 0.001 --cb_type mtr -q ::"));
             //sleep 30 seconds to allow settings to propagate
-            await Delay(30000);
+            await Delay(100);
         }
 
         private RlNetProcessor SetupRlNetProcessor()

@@ -10,7 +10,7 @@ namespace Azure.AI.Personalizer.Tests
 {
     public class RankTests : PersonalizerTestBase
     {
-        public RankTests(bool isAsync) : base(isAsync)
+        public RankTests(bool isAsync) : base(isAsync, Core.TestFramework.RecordedTestMode.Live)
         {
         }
 
