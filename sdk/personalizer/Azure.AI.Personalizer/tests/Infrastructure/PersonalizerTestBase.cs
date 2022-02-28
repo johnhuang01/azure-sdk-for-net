@@ -141,7 +141,7 @@ namespace Azure.AI.Personalizer.Tests
             //string endpoint = isSingleSlot ? TestEnvironment.SingleSlotEndpoint : TestEnvironment.MultiSlotEndpoint;
             //string apiKey = isSingleSlot ? TestEnvironment.SingleSlotApiKey : TestEnvironment.MultiSlotApiKey;
             //string endpoint = "https://autoopte2etest2.ppe.cognitiveservices.azure.com/";
-            // string endpoint = "https://localhost:5001/";
+            //string endpoint = "https://localhost:5001/";
             //string apiKey = "5690a97f690544698fe46a3297d5636c";
 
             string endpoint = "https://autoopte2etest1.ppe.cognitiveservices.azure.com/"; // multi-slot
