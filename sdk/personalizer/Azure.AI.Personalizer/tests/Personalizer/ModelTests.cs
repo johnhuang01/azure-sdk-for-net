@@ -35,12 +35,12 @@ namespace Azure.AI.Personalizer.Tests
 
         private async Task<Response<Stream>> GetModel(bool signed, PersonalizerAdministrationClient client)
         {
-            return await client.GetPersonalizerModelAsync(signed);
+            return await client.ExportPersonalizerModelAsync(signed);
         }
 
         private async Task<Response<Stream>> ExportSignedModel(PersonalizerAdministrationClient client)
         {
-            return await client.ExportPersonalizerSignedModelAsync();
+            return await client.ExportPersonalizerModelAsync(true);
         }
 
         private async Task<Response> ImportSignedModel(Stream modelBody, PersonalizerAdministrationClient client)

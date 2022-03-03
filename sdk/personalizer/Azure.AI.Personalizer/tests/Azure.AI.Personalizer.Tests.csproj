@@ -6,14 +6,12 @@
     <NoWarn>$(NoWarn);CS1591</NoWarn>
   </PropertyGroup>
   <ItemGroup>
+    <PackageReference Include="Azure.AI.Personalizer" VersionOverride="2.0.0-alpha.20220301.2" />
     <PackageReference Include="Microsoft.RL" VersionOverride="1.0.18750001-dev" />
   </ItemGroup>
 
 
   <!-- Reference the Client Library -->
-  <ItemGroup>
-    <ProjectReference Include="..\src\Azure.AI.Personalizer.csproj" />
-  </ItemGroup>
   
   
   <!-- Add Test References -->

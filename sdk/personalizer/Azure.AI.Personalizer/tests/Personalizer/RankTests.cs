@@ -24,17 +24,44 @@ namespace Azure.AI.Personalizer.Tests
         [Test]
         public async Task SingleSlotRankLocalInferenceTests()
         {
-            Assert.ThrowsAsync<ArgumentOutOfRangeException>(async () => await GetPersonalizerClientAsync(isSingleSlot: true, isLocalInference: true, subsampleRate: 1.01f));
-            Assert.ThrowsAsync<ArgumentOutOfRangeException>(async () => await GetPersonalizerClientAsync(isSingleSlot: true, isLocalInference: true, subsampleRate: 0f));
-            PersonalizerClient client = await GetPersonalizerClientAsync(isSingleSlot: true, isLocalInference: true);
+            Assert.ThrowsAsync<ArgumentOutOfRangeException>(async () => await GetPersonalizerClientAsync(isSingleSlot: true, useLocalInference: true, subsampleRate: 1.01f));
+            Assert.ThrowsAsync<ArgumentOutOfRangeException>(async () => await GetPersonalizerClientAsync(isSingleSlot: true, useLocalInference: true, subsampleRate: 0f));
+            PersonalizerClient client = await GetPersonalizerClientAsync(isSingleSlot: true, useLocalInference: true, subsampleRate: 0.4f);
             await SingleSlotRankTests(client);
         }
 
         private async Task SingleSlotRankTests(PersonalizerClient client)
         {
-            await RankNullParameters(client);
-            await RankServerFeatures(client);
-            await RankNullParameters(client);
+            await RankNullParametersTest(client);
+
+            //await RankNullParameters(client);
+            //await RankServerFeatures(client);
+            //await RankNullParameters(client);
+        }
+
+        private async Task RankNullParametersTest(PersonalizerClient client)
+        {
+            for (int j = 0; j < 2000; j++)
+            {
+                IList<PersonalizerRankableAction> actions = new List<PersonalizerRankableAction>();
+                actions.Add
+                    (new PersonalizerRankableAction(
+                        id: "Person",
+                        features:
+                        new List<object>() { new { videoType = "documentary", videoLength = 35, director = "CarlSagan" }, new { mostWatchedByAge = "30-35" } }
+                ));
+                var request = new PersonalizerRankOptions(actions, null, null);
+                request.EventId = "event_" + j;
+                // Action
+                PersonalizerRankResult response = await client.RankAsync(request);
+                // Assert
+                Assert.AreEqual(actions.Count, response.Ranking.Count);
+                for (int i = 0; i < response.Ranking.Count; i++)
+                {
+                    Assert.AreEqual(actions[i].Id, response.Ranking[i].Id);
+                }
+            }
+            Console.WriteLine("test is finished. ");
         }
 
         private async Task RankNullParameters(PersonalizerClient client)

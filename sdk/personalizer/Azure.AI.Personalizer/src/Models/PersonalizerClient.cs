@@ -600,11 +600,11 @@ namespace Azure.AI.Personalizer
             // set up the model
             if (azureKeyCredential != null)
             {
-                //config["http.api.key"] = azureKeyCredential.Key;
+                config["http.api.key"] = azureKeyCredential.Key;
 
                 //config["http.api.key"] = "c7f856a42c2e43ff96d3a69236a6be4e"; // single-slot
-                config["http.api.key"] = "a81b86ff3e4c467cae481a6fa6724d56"; // multi-slot
-                config["http.api.header.key.name"] = "apim-subscription-id";
+                //config["http.api.key"] = "a81b86ff3e4c467cae481a6fa6724d56"; // multi-slot
+                //config["http.api.header.key.name"] = "apim-subscription-id";
             }
             else if (tokenCredential != null)
             {
@@ -621,19 +621,19 @@ namespace Azure.AI.Personalizer
             personalizerServiceProperties = ServiceConfigurationRestClient.Get(cancellationToken);
             personalizerPolicy = PolicyRestClient.Get(cancellationToken);
             //interactions & observations
-            //config["interaction.http.api.host"] = stringEndpoint + "personalizer/v1.1-preview.3/logs/interactions";
-            //config["observation.http.api.host"] = stringEndpoint + "personalizer/v1.1-preview.3/logs/observations";
+            config["interaction.http.api.host"] = stringEndpoint + "personalizer/v1.1-preview.3/logs/interactions";
+            config["observation.http.api.host"] = stringEndpoint + "personalizer/v1.1-preview.3/logs/observations";
 
-            config["interaction.http.api.host"] = "https://localhost:5001/" + "personalizer/v1.1-preview.3/logs/interactions";
-            config["observation.http.api.host"] = "https://localhost:5001/" + "personalizer/v1.1-preview.3/logs/observations";
+            //config["interaction.http.api.host"] = "https://localhost:5001/" + "personalizer/v1.1-preview.3/logs/interactions";
+            //config["observation.http.api.host"] = "https://localhost:5001/" + "personalizer/v1.1-preview.3/logs/observations";
 
             config["interaction.sender.implementation"] = "INTERACTION_HTTP_API_SENDER";
             config["observation.sender.implementation"] = "OBSERVATION_HTTP_API_SENDER";
             config["interaction.subsample.rate"] = Convert.ToString(this.subsampleRate, CultureInfo.InvariantCulture);
             config["observation.subsample.rate"] = Convert.ToString(this.subsampleRate, CultureInfo.InvariantCulture);
             //model
-            //config["model.blob.uri"] = stringEndpoint + "personalizer/v1.1-preview.3/model";
-            config["model.blob.uri"] = "https://localhost:5001/" + "personalizer/v1.1-preview.3/model";
+            config["model.blob.uri"] = stringEndpoint + "personalizer/v1.1-preview.3/model";
+            //config["model.blob.uri"] = "https://localhost:5001/" + "personalizer/v1.1-preview.3/model";
 
             config["model.source"] = "HTTP_MODEL_DATA";
             //config["appid"] = "c7f856a42c2e43ff96d3a69236a6be4e";

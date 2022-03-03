@@ -97,7 +97,7 @@ namespace Azure.AI.Personalizer.Tests
             Sanitizer = new PersonalizerRecordedTestSanitizer();
         }
 
-        protected async Task<PersonalizerClient> GetPersonalizerClientAsync(bool isSingleSlot = false, bool isLocalInference = false, float subsampleRate = 1.0f)
+        protected async Task<PersonalizerClient> GetPersonalizerClientAsync(bool isSingleSlot = false, bool useLocalInference = false, float subsampleRate = 1.0f)
         {
             //string endpoint = "https://autoopte2etest2.ppe.cognitiveservices.azure.com/"; // isSingleSlot ? TestEnvironment.SingleSlotEndpoint : TestEnvironment.MultiSlotEndpoint;
             string endpoint = "https://autoopte2etest1.ppe.cognitiveservices.azure.com/"; // multi-slot
@@ -112,9 +112,9 @@ namespace Azure.AI.Personalizer.Tests
                 await EnableMultiSlot(adminClient);
             }
             var credential = new AzureKeyCredential(apiKey);
-            var options = InstrumentClientOptions(new PersonalizerClientOptions(isLocalInference: isLocalInference, subsampleRate: subsampleRate));
+            var options = InstrumentClientOptions(new PersonalizerClientOptions(useLocalInference: useLocalInference, subsampleRate: subsampleRate));
             PersonalizerClient personalizerClient = null;
-            if (isLocalInference)
+            if (useLocalInference)
             {
                 if (Mode == RecordedTestMode.Playback)
                 {

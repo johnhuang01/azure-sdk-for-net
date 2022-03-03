@@ -85,20 +85,20 @@ namespace Azure.AI.Personalizer.Tests
         {
             //Assert.ThrowsAsync<ArgumentOutOfRangeException>(async () => await GetPersonalizerClientAsync(isSingleSlot: false, isLocalInference: true, subsampleRate: 1.01f));
             //Assert.ThrowsAsync<ArgumentOutOfRangeException>(async () => await GetPersonalizerClientAsync(isSingleSlot: false, isLocalInference: true, subsampleRate: 0f));
-            PersonalizerClient client = await GetPersonalizerClientAsync(isSingleSlot: false, isLocalInference: true, subsampleRate: 0.7f);
+            PersonalizerClient client = await GetPersonalizerClientAsync(isSingleSlot: false, useLocalInference: true, subsampleRate: 1.0f);
             await MultiSlotTestInner(client);
         }
 
         private async Task MultiSlotTestInner(PersonalizerClient client)
         {
-            await RankMultiSlotNullParametersTest(client);
+            //await RankMultiSlotNullParametersTest(client);
 
-            //await RankMultiSlotNullParameters(client);
-            //await RankMultiSlotNoOptions(client);
-            //await RankMultiSlot(client);
-            //await Reward(client);
-            //await RewardForOneSlot(client);
-            //await Activate(client);
+            await RankMultiSlotNullParameters(client);
+            await RankMultiSlotNoOptions(client);
+            await RankMultiSlot(client);
+            await Reward(client);
+            await RewardForOneSlot(client);
+            await Activate(client);
         }
 
         private async Task RankMultiSlotNullParametersTest(PersonalizerClient client)
